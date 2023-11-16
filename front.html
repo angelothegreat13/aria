@@ -34,11 +34,12 @@
 	<script type="text/javascript" src="aria/js/aria.min0896.js?v=80027"></script>
 </head>
 <body>
+	
 <div class="wrapper_loading hidden" style="display: initial !important; transition: .5s all;">
 	<img src="aria/images/loading.gif" class="wrapper_loading_img" alt="loading">
 </div>
 <div class="wrapper">
-	<!-- 헤더영역 -->
+	<!-- banner  -->
 	<section class="banner-section w-ba">
 		<img class="banner-bg" src="aria/images/bg/banner-bg0896.jpg?v=80027">
 		<div class="container h-100 dflex-ac-jc">
@@ -95,6 +96,9 @@
 			</div>
 		</div>
 	</section>
+	<!-- end of banner  -->
+
+	<!-- header  -->
 	<header class="header-section w-ba">
 		<div class="container dflex-ac-jc h-100">
 			<ul class="bs-ul main-menu sidebar-left">
@@ -138,179 +142,184 @@
 			</div>
 		</div>
 	</header>
+	<!-- end of header  -->
+
 	<script type="text/javascript">
-	const INTERVAL = 10 * 1000; // 10s 간격으로 실시간통계요청 (쪽지,문의처리까지)
-	function onDirLogin() 
-	{
-		ajaxFormSend("login", "/front/login.json", {
-		}, function(data) {
-			console.log(data);
-			if (data.success) {
-				location.reload();
-				// location.href = '' || data.message || '/front';
-			} else {
-				showMsg(data.message || "로그인 실패!", 'error');
-				reloadImgCaptcha();
-				$('.captcha-panel input').focus();
-			}
-		});
-	}
-
-	function refreshCash() 
-	{
-		ajaxSend('/front/cash/balance.json', { }, function(data) {
-			if (!data.success) {
+		const INTERVAL = 10 * 1000; 
+		function onDirLogin() 
+		{
+			ajaxFormSend("login", "/front/login.json", {
+			}, function(data) {
 				console.log(data);
-				return;
-			}
-			let cashAmount = formatComma(data.data);
-			$('.userCashAmount').each(function () {
-				if ($(this).prop("tagName") == 'INPUT') {
-					$(this).val(cashAmount);
-					return;
+				if (data.success) {
+					location.reload();
+					// location.href = '' || data.message || '/front';
+				} else {
+					showMsg(data.message || "로그인 실패!", 'error');
+					reloadImgCaptcha();
+					$('.captcha-panel input').focus();
 				}
-				$(this).html(cashAmount);
 			});
-		}, undefined, function () {
-			loading.close();
-		});
-	}
-
-	function ignitTimeout() {
-		setTimeout(getTopStats, INTERVAL);
-	}
-
-	var audio = new Audio();
-	var lastReqStats = {};
-
-	function getTopStats(onlyOnce = false) 
-	{
-		ajaxSend('/front/top_stats.json', { }, function(jData) {
-			if (!jData.success) {
-				console.log(jData);
-				if (jData.retCode == ERROR_LOGIN) {
-					closePopupGame();
-					confirmMsgOnly("로그인정보가 유효하지 않습니다.", function() {
-						location.reload();
-					});
-					onlyOnce = true;
-				}
-				return;
-			}
-			let reqStats = jData.data.selfReqStats;
-
-			let audioPlayed = tryMarkAndPlayAudio(reqStats);
-
-			let letterCnt = sessionStorage.getItem('letterCnt') || '0';
-			if (parseInt(letterCnt) < reqStats.letterCnt) {
-				showLetterAlarm();
-			}
-			let replyCnt = sessionStorage.getItem('replyCnt') || '0';
-			if (parseInt(replyCnt) < reqStats.replyCnt) {
-				showQnaAlarm();
-			}
-
-			if (audioPlayed) {
-				lastReqStats = reqStats;
-				setTimeout(function () {
-					tryMarkAndPlayAudio(lastReqStats); // 10초 요청이 너무 오래므로 5초 후에 다시 플레이한다.
-				}, INTERVAL / 2);
-			}
-
-
-
-			selfAskCnt = reqStats.askCnt || 0;
-			selfLetterCnt = reqStats.letterCnt || 0;
-			selfReplyCnt = reqStats.replyCnt || 0;
-			selfInCnt = reqStats.inCnt || 0;
-			selfOutCnt = reqStats.outCnt || 0;
-			selfCompXchgCnt = reqStats.compXchgCnt || 0;
-
-			sessionStorage.setItem('letterCnt', selfLetterCnt);
-			sessionStorage.setItem('replyCnt', selfReplyCnt);
-			sessionStorage.setItem('statInCnt', selfInCnt);
-			sessionStorage.setItem('statOutCnt', selfOutCnt);
-			sessionStorage.setItem('compXchgCnt', selfCompXchgCnt);
-
-			$('.userLetterCount').html(selfLetterCnt);
-			$('.userReplyCount').html(selfReplyCnt);
-
-
-			let ownStats = jData.data.userOwnStats;
-			// 
-			
-			let cashAmount = formatComma(ownStats.cashAmount + (ownStats.cashIngame || 0));
-			$('.userCashAmount').each(function () {
-				if ($(this).prop("tagName") == 'INPUT') {
-					$(this).val(cashAmount);
-					return;
-				}
-				$(this).html(cashAmount);
-			});
-			let cashPoint = formatComma(ownStats.cashPoint);
-			$('.userCashPoint').each(function () {
-				if ($(this).prop("tagName") == 'INPUT') {
-					$(this).val(cashPoint);
-					return;
-				}
-				$(this).html(cashPoint);
-			});
-			let cashRolling = formatComma(ownStats.cashRolling);
-			$('.userCashRolling').each(function () {
-				if ($(this).prop("tagName") == 'INPUT') {
-					$(this).val(cashRolling);
-					return;
-				}
-				$(this).html(cashRolling);
-			});
-		}, undefined
-		, function (data) {
-			if (!onlyOnce) {
-				ignitTimeout();
-			}
-		});
-	}
-
-	function tryMarkAndPlayAudio(reqStats) 
-	{
-		let audioPlayed = false;
-
-		if (reqStats.letterCnt > 0) {
-			$('.mypage-letter-panel > .labels').addClass('ic-new');
-			$('.myPageModal .item-letter > span').addClass('ic-new');
-
-			playAudio(audio, 'selfLetter');
-			audioPlayed = true;
-		} else {
-			$('.mypage-letter-panel > .labels').removeClass('ic-new');
-			$('.myPageModal .item-letter > span').removeClass('ic-new');
-
-			if (!audioPlayed) stopAudio(audio);
 		}
 
-		if (reqStats.replyCnt > 0) {
-			$('.mypage-qna-panel > .labels').addClass('ic-new');
-			$('.myPageModal .item-qna > span').addClass('ic-new');
-
-			playAudio(audio, 'selfReply');
-			audioPlayed = true;
-		} else {
-			$('.mypage-qna-panel > .labels').removeClass('ic-new');
-			$('.myPageModal .item-qna > span').removeClass('ic-new');
-
-			if (!audioPlayed) stopAudio(audio);
+		function refreshCash() 
+		{
+			ajaxSend('/front/cash/balance.json', { }, function(data) {
+				if (!data.success) {
+					console.log(data);
+					return;
+				}
+				let cashAmount = formatComma(data.data);
+				$('.userCashAmount').each(function () {
+					if ($(this).prop("tagName") == 'INPUT') {
+						$(this).val(cashAmount);
+						return;
+					}
+					$(this).html(cashAmount);
+				});
+			}, undefined, function () {
+				loading.close();
+			});
 		}
 
-		if ($('.mypage-letter-panel > .labels, .mypage-qna-panel > .labels').hasClass('ic-new')) {
-			$('.mypage-btn').addClass('pulse-rect');
-		} else {
-			$('.mypage-btn').removeClass('pulse-rect');
+		function ignitTimeout() {
+			setTimeout(getTopStats, INTERVAL);
 		}
 
-		return audioPlayed;
-	}
+		var audio = new Audio();
+		var lastReqStats = {};
+
+		function getTopStats(onlyOnce = false) 
+		{
+			ajaxSend('/front/top_stats.json', { }, function(jData) {
+				if (!jData.success) {
+					console.log(jData);
+					if (jData.retCode == ERROR_LOGIN) {
+						closePopupGame();
+						confirmMsgOnly("로그인정보가 유효하지 않습니다.", function() {
+							location.reload();
+						});
+						onlyOnce = true;
+					}
+					return;
+				}
+				let reqStats = jData.data.selfReqStats;
+
+				let audioPlayed = tryMarkAndPlayAudio(reqStats);
+
+				let letterCnt = sessionStorage.getItem('letterCnt') || '0';
+				if (parseInt(letterCnt) < reqStats.letterCnt) {
+					showLetterAlarm();
+				}
+				let replyCnt = sessionStorage.getItem('replyCnt') || '0';
+				if (parseInt(replyCnt) < reqStats.replyCnt) {
+					showQnaAlarm();
+				}
+
+				if (audioPlayed) {
+					lastReqStats = reqStats;
+					setTimeout(function () {
+						tryMarkAndPlayAudio(lastReqStats); // 10초 요청이 너무 오래므로 5초 후에 다시 플레이한다.
+					}, INTERVAL / 2);
+				}
+
+
+
+				selfAskCnt = reqStats.askCnt || 0;
+				selfLetterCnt = reqStats.letterCnt || 0;
+				selfReplyCnt = reqStats.replyCnt || 0;
+				selfInCnt = reqStats.inCnt || 0;
+				selfOutCnt = reqStats.outCnt || 0;
+				selfCompXchgCnt = reqStats.compXchgCnt || 0;
+
+				sessionStorage.setItem('letterCnt', selfLetterCnt);
+				sessionStorage.setItem('replyCnt', selfReplyCnt);
+				sessionStorage.setItem('statInCnt', selfInCnt);
+				sessionStorage.setItem('statOutCnt', selfOutCnt);
+				sessionStorage.setItem('compXchgCnt', selfCompXchgCnt);
+
+				$('.userLetterCount').html(selfLetterCnt);
+				$('.userReplyCount').html(selfReplyCnt);
+
+
+				let ownStats = jData.data.userOwnStats;
+				// 
+				
+				let cashAmount = formatComma(ownStats.cashAmount + (ownStats.cashIngame || 0));
+				$('.userCashAmount').each(function () {
+					if ($(this).prop("tagName") == 'INPUT') {
+						$(this).val(cashAmount);
+						return;
+					}
+					$(this).html(cashAmount);
+				});
+				let cashPoint = formatComma(ownStats.cashPoint);
+				$('.userCashPoint').each(function () {
+					if ($(this).prop("tagName") == 'INPUT') {
+						$(this).val(cashPoint);
+						return;
+					}
+					$(this).html(cashPoint);
+				});
+				let cashRolling = formatComma(ownStats.cashRolling);
+				$('.userCashRolling').each(function () {
+					if ($(this).prop("tagName") == 'INPUT') {
+						$(this).val(cashRolling);
+						return;
+					}
+					$(this).html(cashRolling);
+				});
+			}, undefined
+			, function (data) {
+				if (!onlyOnce) {
+					ignitTimeout();
+				}
+			});
+		}
+
+		function tryMarkAndPlayAudio(reqStats) 
+		{
+			let audioPlayed = false;
+
+			if (reqStats.letterCnt > 0) {
+				$('.mypage-letter-panel > .labels').addClass('ic-new');
+				$('.myPageModal .item-letter > span').addClass('ic-new');
+
+				playAudio(audio, 'selfLetter');
+				audioPlayed = true;
+			} else {
+				$('.mypage-letter-panel > .labels').removeClass('ic-new');
+				$('.myPageModal .item-letter > span').removeClass('ic-new');
+
+				if (!audioPlayed) stopAudio(audio);
+			}
+
+			if (reqStats.replyCnt > 0) {
+				$('.mypage-qna-panel > .labels').addClass('ic-new');
+				$('.myPageModal .item-qna > span').addClass('ic-new');
+
+				playAudio(audio, 'selfReply');
+				audioPlayed = true;
+			} else {
+				$('.mypage-qna-panel > .labels').removeClass('ic-new');
+				$('.myPageModal .item-qna > span').removeClass('ic-new');
+
+				if (!audioPlayed) stopAudio(audio);
+			}
+
+			if ($('.mypage-letter-panel > .labels, .mypage-qna-panel > .labels').hasClass('ic-new')) {
+				$('.mypage-btn').addClass('pulse-rect');
+			} else {
+				$('.mypage-btn').removeClass('pulse-rect');
+			}
+
+			return audioPlayed;
+		}
 	</script>
+	
+	<!-- main content  -->
 	<main class="page-content w-ba">
+		<!-- navtabs  -->
 		<section class="toggle-section toggle-3">
 			<div class="container dflex-ac-ja">
 				<button class="toggle-btn casino-toggle active" data-target="casino">
@@ -322,25 +331,6 @@
 						<i class="fa-solid fa-caret-down indicator ml-md-3 ml-1"></i>
 					</div>
 				</button>
-				
-				<!-- 	<button class="toggle-btn other-toggle" data-target="holdem">
-						<div class="btn-panel dflex-ac-je w-ba mr-auto">
-							<i class="fa-solid fa-caret-down indicator mr-md-3 mr-1"></i>
-							<span class="category">홀덤포커</span>
-						</div>
-					</button>
-				
-				
-					<button class="toggle-btn other-toggle" data-target="mini">
-						<div class="btn-panel dflex-ac-je w-ba mr-auto">
-							<i class="fa-solid fa-caret-down indicator mr-md-3 mr-1"></i>
-							<span class="category">미니게임</span>
-						</div>
-					</button>
-				-->
-				
-				
-				
 				<button class="toggle-btn slot-toggle" data-target="slot">
 					<div class="btn-panel dflex-ac-je w-ba mr-auto">
 						<i class="fa-solid fa-caret-down indicator mr-md-3 mr-1"></i>
@@ -352,1502 +342,1425 @@
 				</button>
 			</div>
 		</section>
+		<!-- end of navtabs  -->
+
+		<!-- game providers  -->
 		<section class="game-provider">
 			<div class="container">
 				<div class="casino-section sc-section active">
 					<div class="dflex-ac-jc align-items-start">
-								<a data-code="evolution.live" data-title="에볼루션" class="sc-btn w-ba play_live">
-									<div class="g-panel w-ba" data-content="@o58u1">
-										<div class="g-cont">
-											<img class="g-img" src="http://rav777.test/images/casino/evolution.png">
-											<button type="button" class="play-btn btn-yellow">게임입장</button>
-										</div>
-										<div class="g-footer w-ba">
-											<div class="g-logo dflex-ac-jc w-ba">
-												<img class="icon-img" src="http://rav777.test/images/casino/evolution2.png">
-											</div>
-										</div>
-										<div class="g-info">
-											<span class="g-name">에볼루션</span>
-											<span class="en-text">Evolution</span>
-										</div>
-										<div class="glass"></div>
+						<a data-code="evolution.live" data-title="에볼루션" class="sc-btn w-ba play_live">
+							<div class="g-panel w-ba" data-content="@o58u1">
+								<div class="g-cont">
+									<img class="g-img" src="aria/images/casino/evolution.png">
+									<button type="button" class="play-btn btn-yellow">게임입장</button>
+								</div>
+								<div class="g-footer w-ba">
+									<div class="g-logo dflex-ac-jc w-ba">
+										<img class="icon-img" src="aria/images/casino/evolution2.png">
 									</div>
-								</a>
-														<a data-code="vivo.live" data-title="에볼루션" class="sc-btn w-ba play_live">
-									<div class="g-panel w-ba" data-content="@o58u1">
-										<div class="g-cont">
-											<img class="g-img" src="http://rav777.test/images/casino/vivo.png">
-											<button type="button" class="play-btn btn-yellow">게임입장</button>
-										</div>
-										<div class="g-footer w-ba">
-											<div class="g-logo dflex-ac-jc w-ba">
-												<img class="icon-img" src="http://rav777.test/images/casino/vivo2.png">
-											</div>
-										</div>
-										<div class="g-info">
-											<span class="g-name">비보게이밍</span>
-											<span class="en-text">Vivo</span>
-										</div>
-										<div class="glass"></div>
+								</div>
+								<div class="g-info">
+									<span class="g-name">에볼루션</span>
+									<span class="en-text">Evolution</span>
+								</div>
+								<div class="glass"></div>
+							</div>
+						</a>
+						<a data-code="vivo.live" data-title="에볼루션" class="sc-btn w-ba play_live">
+							<div class="g-panel w-ba" data-content="@o58u1">
+								<div class="g-cont">
+									<img class="g-img" src="aria/images/casino/vivo.png">
+									<button type="button" class="play-btn btn-yellow">게임입장</button>
+								</div>
+								<div class="g-footer w-ba">
+									<div class="g-logo dflex-ac-jc w-ba">
+										<img class="icon-img" src="aria/images/casino/vivo2.png">
 									</div>
-								</a>
-														<a data-code="oriental.live" data-title="에볼루션" class="sc-btn w-ba play_live">
-									<div class="g-panel w-ba" data-content="@o58u1">
-										<div class="g-cont">
-											<img class="g-img" src="http://rav777.test/images/casino/oriental.png">
-											<button type="button" class="play-btn btn-yellow">게임입장</button>
-										</div>
-										<div class="g-footer w-ba">
-											<div class="g-logo dflex-ac-jc w-ba">
-												<img class="icon-img" src="http://rav777.test/images/casino/oriental2.png">
-											</div>
-										</div>
-										<div class="g-info">
-											<span class="g-name">오리엔탈</span>
-											<span class="en-text">Oriental</span>
-										</div>
-										<div class="glass"></div>
+								</div>
+								<div class="g-info">
+									<span class="g-name">비보게이밍</span>
+									<span class="en-text">Vivo</span>
+								</div>
+								<div class="glass"></div>
+							</div>
+						</a>
+						<a data-code="oriental.live" data-title="에볼루션" class="sc-btn w-ba play_live">
+							<div class="g-panel w-ba" data-content="@o58u1">
+								<div class="g-cont">
+									<img class="g-img" src="aria/images/casino/oriental.png">
+									<button type="button" class="play-btn btn-yellow">게임입장</button>
+								</div>
+								<div class="g-footer w-ba">
+									<div class="g-logo dflex-ac-jc w-ba">
+										<img class="icon-img" src="aria/images/casino/oriental2.png">
 									</div>
-								</a>
-														<a data-code="gameplay.live" data-title="에볼루션" class="sc-btn w-ba play_live">
-									<div class="g-panel w-ba" data-content="@o58u1">
-										<div class="g-cont">
-											<img class="g-img" src="http://rav777.test/images/casino/gameplay.png">
-											<button type="button" class="play-btn btn-yellow">게임입장</button>
-										</div>
-										<div class="g-footer w-ba">
-											<div class="g-logo dflex-ac-jc w-ba">
-												<img class="icon-img" src="http://rav777.test/images/casino/gameplay2.png">
-											</div>
-										</div>
-										<div class="g-info">
-											<span class="g-name">게임플레이</span>
-											<span class="en-text">Gameplay</span>
-										</div>
-										<div class="glass"></div>
+								</div>
+								<div class="g-info">
+									<span class="g-name">오리엔탈</span>
+									<span class="en-text">Oriental</span>
+								</div>
+								<div class="glass"></div>
+							</div>
+						</a>
+						<a data-code="gameplay.live" data-title="에볼루션" class="sc-btn w-ba play_live">
+							<div class="g-panel w-ba" data-content="@o58u1">
+								<div class="g-cont">
+									<img class="g-img" src="aria/images/casino/gameplay.png">
+									<button type="button" class="play-btn btn-yellow">게임입장</button>
+								</div>
+								<div class="g-footer w-ba">
+									<div class="g-logo dflex-ac-jc w-ba">
+										<img class="icon-img" src="aria/images/casino/gameplay2.png">
 									</div>
-								</a>
-														<a data-code="asian.live" data-title="에볼루션" class="sc-btn w-ba play_live">
-									<div class="g-panel w-ba" data-content="@o58u1">
-										<div class="g-cont">
-											<img class="g-img" src="http://rav777.test/images/casino/asian.png">
-											<button type="button" class="play-btn btn-yellow">게임입장</button>
-										</div>
-										<div class="g-footer w-ba">
-											<div class="g-logo dflex-ac-jc w-ba">
-												<img class="icon-img" src="http://rav777.test/images/casino/asian2.png">
-											</div>
-										</div>
-										<div class="g-info">
-											<span class="g-name">아시아게이밍</span>
-											<span class="en-text">Asian</span>
-										</div>
-										<div class="glass"></div>
+								</div>
+								<div class="g-info">
+									<span class="g-name">게임플레이</span>
+									<span class="en-text">Gameplay</span>
+								</div>
+								<div class="glass"></div>
+							</div>
+						</a>
+						<a data-code="asian.live" data-title="에볼루션" class="sc-btn w-ba play_live">
+							<div class="g-panel w-ba" data-content="@o58u1">
+								<div class="g-cont">
+									<img class="g-img" src="aria/images/casino/asian.png">
+									<button type="button" class="play-btn btn-yellow">게임입장</button>
+								</div>
+								<div class="g-footer w-ba">
+									<div class="g-logo dflex-ac-jc w-ba">
+										<img class="icon-img" src="aria/images/casino/asian2.png">
 									</div>
-								</a>
-														<a data-code="bgcasino.live" data-title="에볼루션" class="sc-btn w-ba play_live">
-									<div class="g-panel w-ba" data-content="@o58u1">
-										<div class="g-cont">
-											<img class="g-img" src="http://rav777.test/images/casino/bgcasino.png">
-											<button type="button" class="play-btn btn-yellow">게임입장</button>
-										</div>
-										<div class="g-footer w-ba">
-											<div class="g-logo dflex-ac-jc w-ba">
-												<img class="icon-img" src="http://rav777.test/images/casino/bgcasino2.png">
-											</div>
-										</div>
-										<div class="g-info">
-											<span class="g-name">빅카지노</span>
-											<span class="en-text">Bgcasino</span>
-										</div>
-										<div class="glass"></div>
+								</div>
+								<div class="g-info">
+									<span class="g-name">아시아게이밍</span>
+									<span class="en-text">Asian</span>
+								</div>
+								<div class="glass"></div>
+							</div>
+						</a>
+						<a data-code="bgcasino.live" data-title="에볼루션" class="sc-btn w-ba play_live">
+							<div class="g-panel w-ba" data-content="@o58u1">
+								<div class="g-cont">
+									<img class="g-img" src="aria/images/casino/bgcasino.png">
+									<button type="button" class="play-btn btn-yellow">게임입장</button>
+								</div>
+								<div class="g-footer w-ba">
+									<div class="g-logo dflex-ac-jc w-ba">
+										<img class="icon-img" src="aria/images/casino/bgcasino2.png">
 									</div>
-								</a>
-														<a data-code="ezugi.live" data-title="에볼루션" class="sc-btn w-ba play_live">
-									<div class="g-panel w-ba" data-content="@o58u1">
-										<div class="g-cont">
-											<img class="g-img" src="http://rav777.test/images/casino/ezugi.png">
-											<button type="button" class="play-btn btn-yellow">게임입장</button>
-										</div>
-										<div class="g-footer w-ba">
-											<div class="g-logo dflex-ac-jc w-ba">
-												<img class="icon-img" src="http://rav777.test/images/casino/ezugi2.png">
-											</div>
-										</div>
-										<div class="g-info">
-											<span class="g-name">에주기</span>
-											<span class="en-text">Ezugi</span>
-										</div>
-										<div class="glass"></div>
+								</div>
+								<div class="g-info">
+									<span class="g-name">빅카지노</span>
+									<span class="en-text">Bgcasino</span>
+								</div>
+								<div class="glass"></div>
+							</div>
+						</a>
+						<a data-code="ezugi.live" data-title="에볼루션" class="sc-btn w-ba play_live">
+							<div class="g-panel w-ba" data-content="@o58u1">
+								<div class="g-cont">
+									<img class="g-img" src="aria/images/casino/ezugi.png">
+									<button type="button" class="play-btn btn-yellow">게임입장</button>
+								</div>
+								<div class="g-footer w-ba">
+									<div class="g-logo dflex-ac-jc w-ba">
+										<img class="icon-img" src="aria/images/casino/ezugi2.png">
 									</div>
-								</a>
-														<a data-code="bota.live" data-title="에볼루션" class="sc-btn w-ba play_live">
-									<div class="g-panel w-ba" data-content="@o58u1">
-										<div class="g-cont">
-											<img class="g-img" src="http://rav777.test/images/casino/bota.png">
-											<button type="button" class="play-btn btn-yellow">게임입장</button>
-										</div>
-										<div class="g-footer w-ba">
-											<div class="g-logo dflex-ac-jc w-ba">
-												<img class="icon-img" src="http://rav777.test/images/casino/bota2.png">
-											</div>
-										</div>
-										<div class="g-info">
-											<span class="g-name">보타카지노</span>
-											<span class="en-text">Bota</span>
-										</div>
-										<div class="glass"></div>
+								</div>
+								<div class="g-info">
+									<span class="g-name">에주기</span>
+									<span class="en-text">Ezugi</span>
+								</div>
+								<div class="glass"></div>
+							</div>
+						</a>
+						<a data-code="bota.live" data-title="에볼루션" class="sc-btn w-ba play_live">
+							<div class="g-panel w-ba" data-content="@o58u1">
+								<div class="g-cont">
+									<img class="g-img" src="aria/images/casino/bota.png">
+									<button type="button" class="play-btn btn-yellow">게임입장</button>
+								</div>
+								<div class="g-footer w-ba">
+									<div class="g-logo dflex-ac-jc w-ba">
+										<img class="icon-img" src="aria/images/casino/bota2.png">
 									</div>
-								</a>
-														<a data-code="pragmatic.live" data-title="에볼루션" class="sc-btn w-ba play_live">
-									<div class="g-panel w-ba" data-content="@o58u1">
-										<div class="g-cont">
-											<img class="g-img" src="http://rav777.test/images/casino/pragmatic.png">
-											<button type="button" class="play-btn btn-yellow">게임입장</button>
-										</div>
-										<div class="g-footer w-ba">
-											<div class="g-logo dflex-ac-jc w-ba">
-												<img class="icon-img" src="http://rav777.test/images/casino/pragmatic2.png">
-											</div>
-										</div>
-										<div class="g-info">
-											<span class="g-name">프라그마틱</span>
-											<span class="en-text">Pragmatic</span>
-										</div>
-										<div class="glass"></div>
+								</div>
+								<div class="g-info">
+									<span class="g-name">보타카지노</span>
+									<span class="en-text">Bota</span>
+								</div>
+								<div class="glass"></div>
+							</div>
+						</a>
+						<a data-code="pragmatic.live" data-title="에볼루션" class="sc-btn w-ba play_live">
+							<div class="g-panel w-ba" data-content="@o58u1">
+								<div class="g-cont">
+									<img class="g-img" src="aria/images/casino/pragmatic.png">
+									<button type="button" class="play-btn btn-yellow">게임입장</button>
+								</div>
+								<div class="g-footer w-ba">
+									<div class="g-logo dflex-ac-jc w-ba">
+										<img class="icon-img" src="aria/images/casino/pragmatic2.png">
 									</div>
-								</a>
-														<a data-code="mtv.live" data-title="에볼루션" class="sc-btn w-ba play_live">
-									<div class="g-panel w-ba" data-content="@o58u1">
-										<div class="g-cont">
-											<img class="g-img" src="http://rav777.test/images/casino/mtv.png">
-											<button type="button" class="play-btn btn-yellow">게임입장</button>
-										</div>
-										<div class="g-footer w-ba">
-											<div class="g-logo dflex-ac-jc w-ba">
-												<img class="icon-img" src="http://rav777.test/images/casino/mtv2.png">
-											</div>
-										</div>
-										<div class="g-info">
-											<span class="g-name">MTV게이밍</span>
-											<span class="en-text">Mtv</span>
-										</div>
-										<div class="glass"></div>
+								</div>
+								<div class="g-info">
+									<span class="g-name">프라그마틱</span>
+									<span class="en-text">Pragmatic</span>
+								</div>
+								<div class="glass"></div>
+							</div>
+						</a>
+						<a data-code="mtv.live" data-title="에볼루션" class="sc-btn w-ba play_live">
+							<div class="g-panel w-ba" data-content="@o58u1">
+								<div class="g-cont">
+									<img class="g-img" src="aria/images/casino/mtv.png">
+									<button type="button" class="play-btn btn-yellow">게임입장</button>
+								</div>
+								<div class="g-footer w-ba">
+									<div class="g-logo dflex-ac-jc w-ba">
+										<img class="icon-img" src="aria/images/casino/mtv2.png">
 									</div>
-								</a>
-														<a data-code="playtech.live" data-title="에볼루션" class="sc-btn w-ba play_live">
-									<div class="g-panel w-ba" data-content="@o58u1">
-										<div class="g-cont">
-											<img class="g-img" src="http://rav777.test/images/casino/playtech.png">
-											<button type="button" class="play-btn btn-yellow">게임입장</button>
-										</div>
-										<div class="g-footer w-ba">
-											<div class="g-logo dflex-ac-jc w-ba">
-												<img class="icon-img" src="http://rav777.test/images/casino/playtech2.png">
-											</div>
-										</div>
-										<div class="g-info">
-											<span class="g-name">플레이테크</span>
-											<span class="en-text">Playtech</span>
-										</div>
-										<div class="glass"></div>
+								</div>
+								<div class="g-info">
+									<span class="g-name">MTV게이밍</span>
+									<span class="en-text">Mtv</span>
+								</div>
+								<div class="glass"></div>
+							</div>
+						</a>
+						<a data-code="playtech.live" data-title="에볼루션" class="sc-btn w-ba play_live">
+							<div class="g-panel w-ba" data-content="@o58u1">
+								<div class="g-cont">
+									<img class="g-img" src="aria/images/casino/playtech.png">
+									<button type="button" class="play-btn btn-yellow">게임입장</button>
+								</div>
+								<div class="g-footer w-ba">
+									<div class="g-logo dflex-ac-jc w-ba">
+										<img class="icon-img" src="aria/images/casino/playtech2.png">
 									</div>
-								</a>
-														<a data-code="taishan.live" data-title="에볼루션" class="sc-btn w-ba play_live">
-									<div class="g-panel w-ba" data-content="@o58u1">
-										<div class="g-cont">
-											<img class="g-img" src="http://rav777.test/images/casino/taishan.png">
-											<button type="button" class="play-btn btn-yellow">게임입장</button>
-										</div>
-										<div class="g-footer w-ba">
-											<div class="g-logo dflex-ac-jc w-ba">
-												<img class="icon-img" src="http://rav777.test/images/casino/taishan2.png">
-											</div>
-										</div>
-										<div class="g-info">
-											<span class="g-name">타이산</span>
-											<span class="en-text">Taishan</span>
-										</div>
-										<div class="glass"></div>
+								</div>
+								<div class="g-info">
+									<span class="g-name">플레이테크</span>
+									<span class="en-text">Playtech</span>
+								</div>
+								<div class="glass"></div>
+							</div>
+						</a>
+						<a data-code="taishan.live" data-title="에볼루션" class="sc-btn w-ba play_live">
+							<div class="g-panel w-ba" data-content="@o58u1">
+								<div class="g-cont">
+									<img class="g-img" src="aria/images/casino/taishan.png">
+									<button type="button" class="play-btn btn-yellow">게임입장</button>
+								</div>
+								<div class="g-footer w-ba">
+									<div class="g-logo dflex-ac-jc w-ba">
+										<img class="icon-img" src="aria/images/casino/taishan2.png">
 									</div>
-								</a>
-														<a data-code="skywind.live" data-title="에볼루션" class="sc-btn w-ba play_live">
-									<div class="g-panel w-ba" data-content="@o58u1">
-										<div class="g-cont">
-											<img class="g-img" src="http://rav777.test/images/casino/skywind.png">
-											<button type="button" class="play-btn btn-yellow">게임입장</button>
-										</div>
-										<div class="g-footer w-ba">
-											<div class="g-logo dflex-ac-jc w-ba">
-												<img class="icon-img" src="http://rav777.test/images/casino/skywind2.png">
-											</div>
-										</div>
-										<div class="g-info">
-											<span class="g-name">스카이윈드</span>
-											<span class="en-text">Skywind</span>
-										</div>
-										<div class="glass"></div>
+								</div>
+								<div class="g-info">
+									<span class="g-name">타이산</span>
+									<span class="en-text">Taishan</span>
+								</div>
+								<div class="glass"></div>
+							</div>
+						</a>
+						<a data-code="skywind.live" data-title="에볼루션" class="sc-btn w-ba play_live">
+							<div class="g-panel w-ba" data-content="@o58u1">
+								<div class="g-cont">
+									<img class="g-img" src="aria/images/casino/skywind.png">
+									<button type="button" class="play-btn btn-yellow">게임입장</button>
+								</div>
+								<div class="g-footer w-ba">
+									<div class="g-logo dflex-ac-jc w-ba">
+										<img class="icon-img" src="aria/images/casino/skywind2.png">
 									</div>
-								</a>
-														<a data-code="wmcasino.live" data-title="에볼루션" class="sc-btn w-ba play_live">
-									<div class="g-panel w-ba" data-content="@o58u1">
-										<div class="g-cont">
-											<img class="g-img" src="http://rav777.test/images/casino/wmcasino.png">
-											<button type="button" class="play-btn btn-yellow">게임입장</button>
-										</div>
-										<div class="g-footer w-ba">
-											<div class="g-logo dflex-ac-jc w-ba">
-												<img class="icon-img" src="http://rav777.test/images/casino/wmcasino2.png">
-											</div>
-										</div>
-										<div class="g-info">
-											<span class="g-name">WM카지노</span>
-											<span class="en-text">Wmcasino</span>
-										</div>
-										<div class="glass"></div>
+								</div>
+								<div class="g-info">
+									<span class="g-name">스카이윈드</span>
+									<span class="en-text">Skywind</span>
+								</div>
+								<div class="glass"></div>
+							</div>
+						</a>
+						<a data-code="wmcasino.live" data-title="에볼루션" class="sc-btn w-ba play_live">
+							<div class="g-panel w-ba" data-content="@o58u1">
+								<div class="g-cont">
+									<img class="g-img" src="aria/images/casino/wmcasino.png">
+									<button type="button" class="play-btn btn-yellow">게임입장</button>
+								</div>
+								<div class="g-footer w-ba">
+									<div class="g-logo dflex-ac-jc w-ba">
+										<img class="icon-img" src="aria/images/casino/wmcasino2.png">
 									</div>
-								</a>
-														<a data-code="alg.live" data-title="에볼루션" class="sc-btn w-ba play_live">
-									<div class="g-panel w-ba" data-content="@o58u1">
-										<div class="g-cont">
-											<img class="g-img" src="http://rav777.test/images/casino/alg.png">
-											<button type="button" class="play-btn btn-yellow">게임입장</button>
-										</div>
-										<div class="g-footer w-ba">
-											<div class="g-logo dflex-ac-jc w-ba">
-												<img class="icon-img" src="http://rav777.test/images/casino/alg2.png">
-											</div>
-										</div>
-										<div class="g-info">
-											<span class="g-name">ALG카지노</span>
-											<span class="en-text">Alg</span>
-										</div>
-										<div class="glass"></div>
+								</div>
+								<div class="g-info">
+									<span class="g-name">WM카지노</span>
+									<span class="en-text">Wmcasino</span>
+								</div>
+								<div class="glass"></div>
+							</div>
+						</a>
+						<a data-code="alg.live" data-title="에볼루션" class="sc-btn w-ba play_live">
+							<div class="g-panel w-ba" data-content="@o58u1">
+								<div class="g-cont">
+									<img class="g-img" src="aria/images/casino/alg.png">
+									<button type="button" class="play-btn btn-yellow">게임입장</button>
+								</div>
+								<div class="g-footer w-ba">
+									<div class="g-logo dflex-ac-jc w-ba">
+										<img class="icon-img" src="aria/images/casino/alg2.png">
 									</div>
-								</a>
-														<a data-code="onetouch.live" data-title="에볼루션" class="sc-btn w-ba play_live">
-									<div class="g-panel w-ba" data-content="@o58u1">
-										<div class="g-cont">
-											<img class="g-img" src="http://rav777.test/images/casino/onetouch.png">
-											<button type="button" class="play-btn btn-yellow">게임입장</button>
-										</div>
-										<div class="g-footer w-ba">
-											<div class="g-logo dflex-ac-jc w-ba">
-												<img class="icon-img" src="http://rav777.test/images/casino/onetouch2.png">
-											</div>
-										</div>
-										<div class="g-info">
-											<span class="g-name">원터치</span>
-											<span class="en-text">Onetouch</span>
-										</div>
-										<div class="glass"></div>
+								</div>
+								<div class="g-info">
+									<span class="g-name">ALG카지노</span>
+									<span class="en-text">Alg</span>
+								</div>
+								<div class="glass"></div>
+							</div>
+						</a>
+						<a data-code="onetouch.live" data-title="에볼루션" class="sc-btn w-ba play_live">
+							<div class="g-panel w-ba" data-content="@o58u1">
+								<div class="g-cont">
+									<img class="g-img" src="aria/images/casino/onetouch.png">
+									<button type="button" class="play-btn btn-yellow">게임입장</button>
+								</div>
+								<div class="g-footer w-ba">
+									<div class="g-logo dflex-ac-jc w-ba">
+										<img class="icon-img" src="aria/images/casino/onetouch2.png">
 									</div>
-								</a>
-														<a data-code="sexycasino.live" data-title="에볼루션" class="sc-btn w-ba play_live">
-									<div class="g-panel w-ba" data-content="@o58u1">
-										<div class="g-cont">
-											<img class="g-img" src="http://rav777.test/images/casino/sexycasino.png">
-											<button type="button" class="play-btn btn-yellow">게임입장</button>
-										</div>
-										<div class="g-footer w-ba">
-											<div class="g-logo dflex-ac-jc w-ba">
-												<img class="icon-img" src="http://rav777.test/images/casino/sexycasino2.png">
-											</div>
-										</div>
-										<div class="g-info">
-											<span class="g-name">섹시카지노</span>
-											<span class="en-text">Sexycasino</span>
-										</div>
-										<div class="glass"></div>
+								</div>
+								<div class="g-info">
+									<span class="g-name">원터치</span>
+									<span class="en-text">Onetouch</span>
+								</div>
+								<div class="glass"></div>
+							</div>
+						</a>
+						<a data-code="sexycasino.live" data-title="에볼루션" class="sc-btn w-ba play_live">
+							<div class="g-panel w-ba" data-content="@o58u1">
+								<div class="g-cont">
+									<img class="g-img" src="aria/images/casino/sexycasino.png">
+									<button type="button" class="play-btn btn-yellow">게임입장</button>
+								</div>
+								<div class="g-footer w-ba">
+									<div class="g-logo dflex-ac-jc w-ba">
+										<img class="icon-img" src="aria/images/casino/sexycasino2.png">
 									</div>
-								</a>
-														<a data-code="luckystreak.live" data-title="에볼루션" class="sc-btn w-ba play_live">
-									<div class="g-panel w-ba" data-content="@o58u1">
-										<div class="g-cont">
-											<img class="g-img" src="http://rav777.test/images/casino/luckystreak.png">
-											<button type="button" class="play-btn btn-yellow">게임입장</button>
-										</div>
-										<div class="g-footer w-ba">
-											<div class="g-logo dflex-ac-jc w-ba">
-												<img class="icon-img" src="http://rav777.test/images/casino/luckystreak2.png">
-											</div>
-										</div>
-										<div class="g-info">
-											<span class="g-name">럭키스트릭</span>
-											<span class="en-text">Luckystreak</span>
-										</div>
-										<div class="glass"></div>
+								</div>
+								<div class="g-info">
+									<span class="g-name">섹시카지노</span>
+									<span class="en-text">Sexycasino</span>
+								</div>
+								<div class="glass"></div>
+							</div>
+						</a>
+						<a data-code="luckystreak.live" data-title="에볼루션" class="sc-btn w-ba play_live">
+							<div class="g-panel w-ba" data-content="@o58u1">
+								<div class="g-cont">
+									<img class="g-img" src="aria/images/casino/luckystreak.png">
+									<button type="button" class="play-btn btn-yellow">게임입장</button>
+								</div>
+								<div class="g-footer w-ba">
+									<div class="g-logo dflex-ac-jc w-ba">
+										<img class="icon-img" src="aria/images/casino/luckystreak2.png">
 									</div>
-								</a>
-														<a data-code="royal.live" data-title="에볼루션" class="sc-btn w-ba play_live">
-									<div class="g-panel w-ba" data-content="@o58u1">
-										<div class="g-cont">
-											<img class="g-img" src="http://rav777.test/images/casino/royal.png">
-											<button type="button" class="play-btn btn-yellow">게임입장</button>
-										</div>
-										<div class="g-footer w-ba">
-											<div class="g-logo dflex-ac-jc w-ba">
-												<img class="icon-img" src="http://rav777.test/images/casino/royal2.png">
-											</div>
-										</div>
-										<div class="g-info">
-											<span class="g-name">로얄카지노</span>
-											<span class="en-text">Royal</span>
-										</div>
-										<div class="glass"></div>
+								</div>
+								<div class="g-info">
+									<span class="g-name">럭키스트릭</span>
+									<span class="en-text">Luckystreak</span>
+								</div>
+								<div class="glass"></div>
+							</div>
+						</a>
+						<a data-code="royal.live" data-title="에볼루션" class="sc-btn w-ba play_live">
+							<div class="g-panel w-ba" data-content="@o58u1">
+								<div class="g-cont">
+									<img class="g-img" src="aria/images/casino/royal.png">
+									<button type="button" class="play-btn btn-yellow">게임입장</button>
+								</div>
+								<div class="g-footer w-ba">
+									<div class="g-logo dflex-ac-jc w-ba">
+										<img class="icon-img" src="aria/images/casino/royal2.png">
 									</div>
-								</a>
-														<a data-code="cmd.live" data-title="에볼루션" class="sc-btn w-ba play_live">
-									<div class="g-panel w-ba" data-content="@o58u1">
-										<div class="g-cont">
-											<img class="g-img" src="http://rav777.test/images/casino/cmd.png">
-											<button type="button" class="play-btn btn-yellow">게임입장</button>
-										</div>
-										<div class="g-footer w-ba">
-											<div class="g-logo dflex-ac-jc w-ba">
-												<img class="icon-img" src="http://rav777.test/images/casino/cmd2.png">
-											</div>
-										</div>
-										<div class="g-info">
-											<span class="g-name">CMD홀덤</span>
-											<span class="en-text">Cmd</span>
-										</div>
-										<div class="glass"></div>
+								</div>
+								<div class="g-info">
+									<span class="g-name">로얄카지노</span>
+									<span class="en-text">Royal</span>
+								</div>
+								<div class="glass"></div>
+							</div>
+						</a>
+						<a data-code="cmd.live" data-title="에볼루션" class="sc-btn w-ba play_live">
+							<div class="g-panel w-ba" data-content="@o58u1">
+								<div class="g-cont">
+									<img class="g-img" src="aria/images/casino/cmd.png">
+									<button type="button" class="play-btn btn-yellow">게임입장</button>
+								</div>
+								<div class="g-footer w-ba">
+									<div class="g-logo dflex-ac-jc w-ba">
+										<img class="icon-img" src="aria/images/casino/cmd2.png">
 									</div>
-								</a>
+								</div>
+								<div class="g-info">
+									<span class="g-name">CMD홀덤</span>
+									<span class="en-text">Cmd</span>
+								</div>
+								<div class="glass"></div>
+							</div>
+						</a>
 					</div>
-				</div>
-				
-				<div class="holdem-section sc-section">
-					
-
-				</div>
-			
-				<div class="mini-section sc-section">
-
 				</div>
 
 				<div class="slot-section sc-section">
 					<div class="dflex-ac-jc align-items-start">
-																				<a data-code="pragmatic.live" data-title="에볼루션" class="sc-btn w-ba play_live">
-									<div class="g-panel w-ba" data-content="@o58u1">
-										<div class="g-cont">
-											<img class="g-img" src="http://rav777.test/images/slot/pragmatic.png">
-											<button type="button" class="play-btn btn-yellow">게임입장</button>
-										</div>
-										<div class="g-footer w-ba">
-											<div class="g-logo dflex-ac-jc w-ba">
-												<img class="icon-img" src="http://rav777.test/images/slot/pragmatic2.png">
-											</div>
-										</div>
-										<div class="g-info">
-											<span class="g-name">프라그마틱 슬롯</span>
-											<span class="en-text">Pragmatic</span>
-										</div>
-										<div class="glass"></div>
+						<a data-code="pragmatic.live" data-title="에볼루션" class="sc-btn w-ba play_live">
+							<div class="g-panel w-ba" data-content="@o58u1">
+								<div class="g-cont">
+									<img class="g-img" src="aria/images/slot/pragmatic.png">
+									<button type="button" class="play-btn btn-yellow">게임입장</button>
+								</div>
+								<div class="g-footer w-ba">
+									<div class="g-logo dflex-ac-jc w-ba">
+										<img class="icon-img" src="aria/images/slot/pragmatic2.png">
 									</div>
-								</a>
-														<a data-code="habanero.live" data-title="에볼루션" class="sc-btn w-ba play_live">
-									<div class="g-panel w-ba" data-content="@o58u1">
-										<div class="g-cont">
-											<img class="g-img" src="http://rav777.test/images/slot/habanero.png">
-											<button type="button" class="play-btn btn-yellow">게임입장</button>
-										</div>
-										<div class="g-footer w-ba">
-											<div class="g-logo dflex-ac-jc w-ba">
-												<img class="icon-img" src="http://rav777.test/images/slot/habanero2.png">
-											</div>
-										</div>
-										<div class="g-info">
-											<span class="g-name">하바네로</span>
-											<span class="en-text">Habanero</span>
-										</div>
-										<div class="glass"></div>
+								</div>
+								<div class="g-info">
+									<span class="g-name">프라그마틱 슬롯</span>
+									<span class="en-text">Pragmatic</span>
+								</div>
+								<div class="glass"></div>
+							</div>
+						</a>
+						<a data-code="habanero.live" data-title="에볼루션" class="sc-btn w-ba play_live">
+							<div class="g-panel w-ba" data-content="@o58u1">
+								<div class="g-cont">
+									<img class="g-img" src="aria/images/slot/habanero.png">
+									<button type="button" class="play-btn btn-yellow">게임입장</button>
+								</div>
+								<div class="g-footer w-ba">
+									<div class="g-logo dflex-ac-jc w-ba">
+										<img class="icon-img" src="aria/images/slot/habanero2.png">
 									</div>
-								</a>
-														<a data-code="booongo.live" data-title="에볼루션" class="sc-btn w-ba play_live">
-									<div class="g-panel w-ba" data-content="@o58u1">
-										<div class="g-cont">
-											<img class="g-img" src="http://rav777.test/images/slot/booongo.png">
-											<button type="button" class="play-btn btn-yellow">게임입장</button>
-										</div>
-										<div class="g-footer w-ba">
-											<div class="g-logo dflex-ac-jc w-ba">
-												<img class="icon-img" src="http://rav777.test/images/slot/booongo2.png">
-											</div>
-										</div>
-										<div class="g-info">
-											<span class="g-name">분고</span>
-											<span class="en-text">Booongo</span>
-										</div>
-										<div class="glass"></div>
+								</div>
+								<div class="g-info">
+									<span class="g-name">하바네로</span>
+									<span class="en-text">Habanero</span>
+								</div>
+								<div class="glass"></div>
+							</div>
+						</a>
+						<a data-code="booongo.live" data-title="에볼루션" class="sc-btn w-ba play_live">
+							<div class="g-panel w-ba" data-content="@o58u1">
+								<div class="g-cont">
+									<img class="g-img" src="aria/images/slot/booongo.png">
+									<button type="button" class="play-btn btn-yellow">게임입장</button>
+								</div>
+								<div class="g-footer w-ba">
+									<div class="g-logo dflex-ac-jc w-ba">
+										<img class="icon-img" src="aria/images/slot/booongo2.png">
 									</div>
-								</a>
-														<a data-code="genesis.live" data-title="에볼루션" class="sc-btn w-ba play_live">
-									<div class="g-panel w-ba" data-content="@o58u1">
-										<div class="g-cont">
-											<img class="g-img" src="http://rav777.test/images/slot/genesis.png">
-											<button type="button" class="play-btn btn-yellow">게임입장</button>
-										</div>
-										<div class="g-footer w-ba">
-											<div class="g-logo dflex-ac-jc w-ba">
-												<img class="icon-img" src="http://rav777.test/images/slot/genesis2.png">
-											</div>
-										</div>
-										<div class="g-info">
-											<span class="g-name">제네시스</span>
-											<span class="en-text">Genesis</span>
-										</div>
-										<div class="glass"></div>
+								</div>
+								<div class="g-info">
+									<span class="g-name">분고</span>
+									<span class="en-text">Booongo</span>
+								</div>
+								<div class="glass"></div>
+							</div>
+						</a>
+						<a data-code="genesis.live" data-title="에볼루션" class="sc-btn w-ba play_live">
+							<div class="g-panel w-ba" data-content="@o58u1">
+								<div class="g-cont">
+									<img class="g-img" src="aria/images/slot/genesis.png">
+									<button type="button" class="play-btn btn-yellow">게임입장</button>
+								</div>
+								<div class="g-footer w-ba">
+									<div class="g-logo dflex-ac-jc w-ba">
+										<img class="icon-img" src="aria/images/slot/genesis2.png">
 									</div>
-								</a>
-														<a data-code="evoplay.live" data-title="에볼루션" class="sc-btn w-ba play_live">
-									<div class="g-panel w-ba" data-content="@o58u1">
-										<div class="g-cont">
-											<img class="g-img" src="http://rav777.test/images/slot/evoplay.png">
-											<button type="button" class="play-btn btn-yellow">게임입장</button>
-										</div>
-										<div class="g-footer w-ba">
-											<div class="g-logo dflex-ac-jc w-ba">
-												<img class="icon-img" src="http://rav777.test/images/slot/evoplay2.png">
-											</div>
-										</div>
-										<div class="g-info">
-											<span class="g-name">에보플레이</span>
-											<span class="en-text">Evoplay</span>
-										</div>
-										<div class="glass"></div>
+								</div>
+								<div class="g-info">
+									<span class="g-name">제네시스</span>
+									<span class="en-text">Genesis</span>
+								</div>
+								<div class="glass"></div>
+							</div>
+						</a>
+						<a data-code="evoplay.live" data-title="에볼루션" class="sc-btn w-ba play_live">
+							<div class="g-panel w-ba" data-content="@o58u1">
+								<div class="g-cont">
+									<img class="g-img" src="aria/images/slot/evoplay.png">
+									<button type="button" class="play-btn btn-yellow">게임입장</button>
+								</div>
+								<div class="g-footer w-ba">
+									<div class="g-logo dflex-ac-jc w-ba">
+										<img class="icon-img" src="aria/images/slot/evoplay2.png">
 									</div>
-								</a>
-														<a data-code="playson.live" data-title="에볼루션" class="sc-btn w-ba play_live">
-									<div class="g-panel w-ba" data-content="@o58u1">
-										<div class="g-cont">
-											<img class="g-img" src="http://rav777.test/images/slot/playson.png">
-											<button type="button" class="play-btn btn-yellow">게임입장</button>
-										</div>
-										<div class="g-footer w-ba">
-											<div class="g-logo dflex-ac-jc w-ba">
-												<img class="icon-img" src="http://rav777.test/images/slot/playson2.png">
-											</div>
-										</div>
-										<div class="g-info">
-											<span class="g-name">플레이선</span>
-											<span class="en-text">Playson</span>
-										</div>
-										<div class="glass"></div>
+								</div>
+								<div class="g-info">
+									<span class="g-name">에보플레이</span>
+									<span class="en-text">Evoplay</span>
+								</div>
+								<div class="glass"></div>
+							</div>
+						</a>
+						<a data-code="playson.live" data-title="에볼루션" class="sc-btn w-ba play_live">
+							<div class="g-panel w-ba" data-content="@o58u1">
+								<div class="g-cont">
+									<img class="g-img" src="aria/images/slot/playson.png">
+									<button type="button" class="play-btn btn-yellow">게임입장</button>
+								</div>
+								<div class="g-footer w-ba">
+									<div class="g-logo dflex-ac-jc w-ba">
+										<img class="icon-img" src="aria/images/slot/playson2.png">
 									</div>
-								</a>
-														<a data-code="pgsoft.live" data-title="에볼루션" class="sc-btn w-ba play_live">
-									<div class="g-panel w-ba" data-content="@o58u1">
-										<div class="g-cont">
-											<img class="g-img" src="http://rav777.test/images/slot/pgsoft.png">
-											<button type="button" class="play-btn btn-yellow">게임입장</button>
-										</div>
-										<div class="g-footer w-ba">
-											<div class="g-logo dflex-ac-jc w-ba">
-												<img class="icon-img" src="http://rav777.test/images/slot/pgsoft2.png">
-											</div>
-										</div>
-										<div class="g-info">
-											<span class="g-name">피지소프트</span>
-											<span class="en-text">Pgsoft</span>
-										</div>
-										<div class="glass"></div>
+								</div>
+								<div class="g-info">
+									<span class="g-name">플레이선</span>
+									<span class="en-text">Playson</span>
+								</div>
+								<div class="glass"></div>
+							</div>
+						</a>
+						<a data-code="pgsoft.live" data-title="에볼루션" class="sc-btn w-ba play_live">
+							<div class="g-panel w-ba" data-content="@o58u1">
+								<div class="g-cont">
+									<img class="g-img" src="aria/images/slot/pgsoft.png">
+									<button type="button" class="play-btn btn-yellow">게임입장</button>
+								</div>
+								<div class="g-footer w-ba">
+									<div class="g-logo dflex-ac-jc w-ba">
+										<img class="icon-img" src="aria/images/slot/pgsoft2.png">
 									</div>
-								</a>
-														<a data-code="playngo.live" data-title="에볼루션" class="sc-btn w-ba play_live">
-									<div class="g-panel w-ba" data-content="@o58u1">
-										<div class="g-cont">
-											<img class="g-img" src="http://rav777.test/images/slot/playngo.png">
-											<button type="button" class="play-btn btn-yellow">게임입장</button>
-										</div>
-										<div class="g-footer w-ba">
-											<div class="g-logo dflex-ac-jc w-ba">
-												<img class="icon-img" src="http://rav777.test/images/slot/playngo2.png">
-											</div>
-										</div>
-										<div class="g-info">
-											<span class="g-name">플레이엔고</span>
-											<span class="en-text">Playngo</span>
-										</div>
-										<div class="glass"></div>
+								</div>
+								<div class="g-info">
+									<span class="g-name">피지소프트</span>
+									<span class="en-text">Pgsoft</span>
+								</div>
+								<div class="glass"></div>
+							</div>
+						</a>
+						<a data-code="playngo.live" data-title="에볼루션" class="sc-btn w-ba play_live">
+							<div class="g-panel w-ba" data-content="@o58u1">
+								<div class="g-cont">
+									<img class="g-img" src="aria/images/slot/playngo.png">
+									<button type="button" class="play-btn btn-yellow">게임입장</button>
+								</div>
+								<div class="g-footer w-ba">
+									<div class="g-logo dflex-ac-jc w-ba">
+										<img class="icon-img" src="aria/images/slot/playngo2.png">
 									</div>
-								</a>
-														<a data-code="spinomenal.live" data-title="에볼루션" class="sc-btn w-ba play_live">
-									<div class="g-panel w-ba" data-content="@o58u1">
-										<div class="g-cont">
-											<img class="g-img" src="http://rav777.test/images/slot/spinomenal.png">
-											<button type="button" class="play-btn btn-yellow">게임입장</button>
-										</div>
-										<div class="g-footer w-ba">
-											<div class="g-logo dflex-ac-jc w-ba">
-												<img class="icon-img" src="http://rav777.test/images/slot/spinomenal2.png">
-											</div>
-										</div>
-										<div class="g-info">
-											<span class="g-name">스피노미널</span>
-											<span class="en-text">Spinomenal</span>
-										</div>
-										<div class="glass"></div>
+								</div>
+								<div class="g-info">
+									<span class="g-name">플레이엔고</span>
+									<span class="en-text">Playngo</span>
+								</div>
+								<div class="glass"></div>
+							</div>
+						</a>
+						<a data-code="spinomenal.live" data-title="에볼루션" class="sc-btn w-ba play_live">
+							<div class="g-panel w-ba" data-content="@o58u1">
+								<div class="g-cont">
+									<img class="g-img" src="aria/images/slot/spinomenal.png">
+									<button type="button" class="play-btn btn-yellow">게임입장</button>
+								</div>
+								<div class="g-footer w-ba">
+									<div class="g-logo dflex-ac-jc w-ba">
+										<img class="icon-img" src="aria/images/slot/spinomenal2.png">
 									</div>
-								</a>
-														<a data-code="asian.live" data-title="에볼루션" class="sc-btn w-ba play_live">
-									<div class="g-panel w-ba" data-content="@o58u1">
-										<div class="g-cont">
-											<img class="g-img" src="http://rav777.test/images/slot/asian.png">
-											<button type="button" class="play-btn btn-yellow">게임입장</button>
-										</div>
-										<div class="g-footer w-ba">
-											<div class="g-logo dflex-ac-jc w-ba">
-												<img class="icon-img" src="http://rav777.test/images/slot/asian2.png">
-											</div>
-										</div>
-										<div class="g-info">
-											<span class="g-name">아시아 슬롯</span>
-											<span class="en-text">Asian</span>
-										</div>
-										<div class="glass"></div>
+								</div>
+								<div class="g-info">
+									<span class="g-name">스피노미널</span>
+									<span class="en-text">Spinomenal</span>
+								</div>
+								<div class="glass"></div>
+							</div>
+						</a>
+						<a data-code="asian.live" data-title="에볼루션" class="sc-btn w-ba play_live">
+							<div class="g-panel w-ba" data-content="@o58u1">
+								<div class="g-cont">
+									<img class="g-img" src="aria/images/slot/asian.png">
+									<button type="button" class="play-btn btn-yellow">게임입장</button>
+								</div>
+								<div class="g-footer w-ba">
+									<div class="g-logo dflex-ac-jc w-ba">
+										<img class="icon-img" src="aria/images/slot/asian2.png">
 									</div>
-								</a>
-														<a data-code="thunder.live" data-title="에볼루션" class="sc-btn w-ba play_live">
-									<div class="g-panel w-ba" data-content="@o58u1">
-										<div class="g-cont">
-											<img class="g-img" src="http://rav777.test/images/slot/thunder.png">
-											<button type="button" class="play-btn btn-yellow">게임입장</button>
-										</div>
-										<div class="g-footer w-ba">
-											<div class="g-logo dflex-ac-jc w-ba">
-												<img class="icon-img" src="http://rav777.test/images/slot/thunder2.png">
-											</div>
-										</div>
-										<div class="g-info">
-											<span class="g-name">썬더킥</span>
-											<span class="en-text">Thunder</span>
-										</div>
-										<div class="glass"></div>
+								</div>
+								<div class="g-info">
+									<span class="g-name">아시아 슬롯</span>
+									<span class="en-text">Asian</span>
+								</div>
+								<div class="glass"></div>
+							</div>
+						</a>
+						<a data-code="thunder.live" data-title="에볼루션" class="sc-btn w-ba play_live">
+							<div class="g-panel w-ba" data-content="@o58u1">
+								<div class="g-cont">
+									<img class="g-img" src="aria/images/slot/thunder.png">
+									<button type="button" class="play-btn btn-yellow">게임입장</button>
+								</div>
+								<div class="g-footer w-ba">
+									<div class="g-logo dflex-ac-jc w-ba">
+										<img class="icon-img" src="aria/images/slot/thunder2.png">
 									</div>
-								</a>
-														<a data-code="amatic.live" data-title="에볼루션" class="sc-btn w-ba play_live">
-									<div class="g-panel w-ba" data-content="@o58u1">
-										<div class="g-cont">
-											<img class="g-img" src="http://rav777.test/images/slot/amatic.png">
-											<button type="button" class="play-btn btn-yellow">게임입장</button>
-										</div>
-										<div class="g-footer w-ba">
-											<div class="g-logo dflex-ac-jc w-ba">
-												<img class="icon-img" src="http://rav777.test/images/slot/amatic2.png">
-											</div>
-										</div>
-										<div class="g-info">
-											<span class="g-name">아마틱</span>
-											<span class="en-text">Amatic</span>
-										</div>
-										<div class="glass"></div>
+								</div>
+								<div class="g-info">
+									<span class="g-name">썬더킥</span>
+									<span class="en-text">Thunder</span>
+								</div>
+								<div class="glass"></div>
+							</div>
+						</a>
+						<a data-code="amatic.live" data-title="에볼루션" class="sc-btn w-ba play_live">
+							<div class="g-panel w-ba" data-content="@o58u1">
+								<div class="g-cont">
+									<img class="g-img" src="aria/images/slot/amatic.png">
+									<button type="button" class="play-btn btn-yellow">게임입장</button>
+								</div>
+								<div class="g-footer w-ba">
+									<div class="g-logo dflex-ac-jc w-ba">
+										<img class="icon-img" src="aria/images/slot/amatic2.png">
 									</div>
-								</a>
-														<a data-code="micro.live" data-title="에볼루션" class="sc-btn w-ba play_live">
-									<div class="g-panel w-ba" data-content="@o58u1">
-										<div class="g-cont">
-											<img class="g-img" src="http://rav777.test/images/slot/micro.png">
-											<button type="button" class="play-btn btn-yellow">게임입장</button>
-										</div>
-										<div class="g-footer w-ba">
-											<div class="g-logo dflex-ac-jc w-ba">
-												<img class="icon-img" src="http://rav777.test/images/slot/micro2.png">
-											</div>
-										</div>
-										<div class="g-info">
-											<span class="g-name">게임아트</span>
-											<span class="en-text">Micro</span>
-										</div>
-										<div class="glass"></div>
+								</div>
+								<div class="g-info">
+									<span class="g-name">아마틱</span>
+									<span class="en-text">Amatic</span>
+								</div>
+								<div class="glass"></div>
+							</div>
+						</a>
+						<a data-code="micro.live" data-title="에볼루션" class="sc-btn w-ba play_live">
+							<div class="g-panel w-ba" data-content="@o58u1">
+								<div class="g-cont">
+									<img class="g-img" src="aria/images/slot/micro.png">
+									<button type="button" class="play-btn btn-yellow">게임입장</button>
+								</div>
+								<div class="g-footer w-ba">
+									<div class="g-logo dflex-ac-jc w-ba">
+										<img class="icon-img" src="aria/images/slot/micro2.png">
 									</div>
-								</a>
-														<a data-code="dreamtech.live" data-title="에볼루션" class="sc-btn w-ba play_live">
-									<div class="g-panel w-ba" data-content="@o58u1">
-										<div class="g-cont">
-											<img class="g-img" src="http://rav777.test/images/slot/dreamtech.png">
-											<button type="button" class="play-btn btn-yellow">게임입장</button>
-										</div>
-										<div class="g-footer w-ba">
-											<div class="g-logo dflex-ac-jc w-ba">
-												<img class="icon-img" src="http://rav777.test/images/slot/dreamtech2.png">
-											</div>
-										</div>
-										<div class="g-info">
-											<span class="g-name">마이크로 슬롯</span>
-											<span class="en-text">Dreamtech</span>
-										</div>
-										<div class="glass"></div>
+								</div>
+								<div class="g-info">
+									<span class="g-name">게임아트</span>
+									<span class="en-text">Micro</span>
+								</div>
+								<div class="glass"></div>
+							</div>
+						</a>
+						<a data-code="dreamtech.live" data-title="에볼루션" class="sc-btn w-ba play_live">
+							<div class="g-panel w-ba" data-content="@o58u1">
+								<div class="g-cont">
+									<img class="g-img" src="aria/images/slot/dreamtech.png">
+									<button type="button" class="play-btn btn-yellow">게임입장</button>
+								</div>
+								<div class="g-footer w-ba">
+									<div class="g-logo dflex-ac-jc w-ba">
+										<img class="icon-img" src="aria/images/slot/dreamtech2.png">
 									</div>
-								</a>
-														<a data-code="ttg.live" data-title="에볼루션" class="sc-btn w-ba play_live">
-									<div class="g-panel w-ba" data-content="@o58u1">
-										<div class="g-cont">
-											<img class="g-img" src="http://rav777.test/images/slot/ttg.png">
-											<button type="button" class="play-btn btn-yellow">게임입장</button>
-										</div>
-										<div class="g-footer w-ba">
-											<div class="g-logo dflex-ac-jc w-ba">
-												<img class="icon-img" src="http://rav777.test/images/slot/ttg2.png">
-											</div>
-										</div>
-										<div class="g-info">
-											<span class="g-name">탑트렌드</span>
-											<span class="en-text">Ttg</span>
-										</div>
-										<div class="glass"></div>
+								</div>
+								<div class="g-info">
+									<span class="g-name">마이크로 슬롯</span>
+									<span class="en-text">Dreamtech</span>
+								</div>
+								<div class="glass"></div>
+							</div>
+						</a>
+						<a data-code="ttg.live" data-title="에볼루션" class="sc-btn w-ba play_live">
+							<div class="g-panel w-ba" data-content="@o58u1">
+								<div class="g-cont">
+									<img class="g-img" src="aria/images/slot/ttg.png">
+									<button type="button" class="play-btn btn-yellow">게임입장</button>
+								</div>
+								<div class="g-footer w-ba">
+									<div class="g-logo dflex-ac-jc w-ba">
+										<img class="icon-img" src="aria/images/slot/ttg2.png">
 									</div>
-								</a>
-														<a data-code="redtiger.live" data-title="에볼루션" class="sc-btn w-ba play_live">
-									<div class="g-panel w-ba" data-content="@o58u1">
-										<div class="g-cont">
-											<img class="g-img" src="http://rav777.test/images/slot/redtiger.png">
-											<button type="button" class="play-btn btn-yellow">게임입장</button>
-										</div>
-										<div class="g-footer w-ba">
-											<div class="g-logo dflex-ac-jc w-ba">
-												<img class="icon-img" src="http://rav777.test/images/slot/redtiger2.png">
-											</div>
-										</div>
-										<div class="g-info">
-											<span class="g-name">레드타이거</span>
-											<span class="en-text">Redtiger</span>
-										</div>
-										<div class="glass"></div>
+								</div>
+								<div class="g-info">
+									<span class="g-name">탑트렌드</span>
+									<span class="en-text">Ttg</span>
+								</div>
+								<div class="glass"></div>
+							</div>
+						</a>
+						<a data-code="redtiger.live" data-title="에볼루션" class="sc-btn w-ba play_live">
+							<div class="g-panel w-ba" data-content="@o58u1">
+								<div class="g-cont">
+									<img class="g-img" src="aria/images/slot/redtiger.png">
+									<button type="button" class="play-btn btn-yellow">게임입장</button>
+								</div>
+								<div class="g-footer w-ba">
+									<div class="g-logo dflex-ac-jc w-ba">
+										<img class="icon-img" src="aria/images/slot/redtiger2.png">
 									</div>
-								</a>
-														<a data-code="nolimit.live" data-title="에볼루션" class="sc-btn w-ba play_live">
-									<div class="g-panel w-ba" data-content="@o58u1">
-										<div class="g-cont">
-											<img class="g-img" src="http://rav777.test/images/slot/nolimit.png">
-											<button type="button" class="play-btn btn-yellow">게임입장</button>
-										</div>
-										<div class="g-footer w-ba">
-											<div class="g-logo dflex-ac-jc w-ba">
-												<img class="icon-img" src="http://rav777.test/images/slot/nolimit2.png">
-											</div>
-										</div>
-										<div class="g-info">
-											<span class="g-name">노리밋시티</span>
-											<span class="en-text">Nolimit</span>
-										</div>
-										<div class="glass"></div>
+								</div>
+								<div class="g-info">
+									<span class="g-name">레드타이거</span>
+									<span class="en-text">Redtiger</span>
+								</div>
+								<div class="glass"></div>
+							</div>
+						</a>
+						<a data-code="nolimit.live" data-title="에볼루션" class="sc-btn w-ba play_live">
+							<div class="g-panel w-ba" data-content="@o58u1">
+								<div class="g-cont">
+									<img class="g-img" src="aria/images/slot/nolimit.png">
+									<button type="button" class="play-btn btn-yellow">게임입장</button>
+								</div>
+								<div class="g-footer w-ba">
+									<div class="g-logo dflex-ac-jc w-ba">
+										<img class="icon-img" src="aria/images/slot/nolimit2.png">
 									</div>
-								</a>
-														<a data-code="skywind.live" data-title="에볼루션" class="sc-btn w-ba play_live">
-									<div class="g-panel w-ba" data-content="@o58u1">
-										<div class="g-cont">
-											<img class="g-img" src="http://rav777.test/images/slot/skywind.png">
-											<button type="button" class="play-btn btn-yellow">게임입장</button>
-										</div>
-										<div class="g-footer w-ba">
-											<div class="g-logo dflex-ac-jc w-ba">
-												<img class="icon-img" src="http://rav777.test/images/slot/skywind2.png">
-											</div>
-										</div>
-										<div class="g-info">
-											<span class="g-name">스카이윈드 슬롯</span>
-											<span class="en-text">Skywind</span>
-										</div>
-										<div class="glass"></div>
+								</div>
+								<div class="g-info">
+									<span class="g-name">노리밋시티</span>
+									<span class="en-text">Nolimit</span>
+								</div>
+								<div class="glass"></div>
+							</div>
+						</a>
+						<a data-code="skywind.live" data-title="에볼루션" class="sc-btn w-ba play_live">
+							<div class="g-panel w-ba" data-content="@o58u1">
+								<div class="g-cont">
+									<img class="g-img" src="aria/images/slot/skywind.png">
+									<button type="button" class="play-btn btn-yellow">게임입장</button>
+								</div>
+								<div class="g-footer w-ba">
+									<div class="g-logo dflex-ac-jc w-ba">
+										<img class="icon-img" src="aria/images/slot/skywind2.png">
 									</div>
-								</a>
-														<a data-code="playstar.live" data-title="에볼루션" class="sc-btn w-ba play_live">
-									<div class="g-panel w-ba" data-content="@o58u1">
-										<div class="g-cont">
-											<img class="g-img" src="http://rav777.test/images/slot/playstar.png">
-											<button type="button" class="play-btn btn-yellow">게임입장</button>
-										</div>
-										<div class="g-footer w-ba">
-											<div class="g-logo dflex-ac-jc w-ba">
-												<img class="icon-img" src="http://rav777.test/images/slot/playstar2.png">
-											</div>
-										</div>
-										<div class="g-info">
-											<span class="g-name">플레이스타</span>
-											<span class="en-text">Playstar</span>
-										</div>
-										<div class="glass"></div>
+								</div>
+								<div class="g-info">
+									<span class="g-name">스카이윈드 슬롯</span>
+									<span class="en-text">Skywind</span>
+								</div>
+								<div class="glass"></div>
+							</div>
+						</a>
+						<a data-code="playstar.live" data-title="에볼루션" class="sc-btn w-ba play_live">
+							<div class="g-panel w-ba" data-content="@o58u1">
+								<div class="g-cont">
+									<img class="g-img" src="aria/images/slot/playstar.png">
+									<button type="button" class="play-btn btn-yellow">게임입장</button>
+								</div>
+								<div class="g-footer w-ba">
+									<div class="g-logo dflex-ac-jc w-ba">
+										<img class="icon-img" src="aria/images/slot/playstar2.png">
 									</div>
-								</a>
-														<a data-code="avatarux.live" data-title="에볼루션" class="sc-btn w-ba play_live">
-									<div class="g-panel w-ba" data-content="@o58u1">
-										<div class="g-cont">
-											<img class="g-img" src="http://rav777.test/images/slot/avatarux.png">
-											<button type="button" class="play-btn btn-yellow">게임입장</button>
-										</div>
-										<div class="g-footer w-ba">
-											<div class="g-logo dflex-ac-jc w-ba">
-												<img class="icon-img" src="http://rav777.test/images/slot/avatarux2.png">
-											</div>
-										</div>
-										<div class="g-info">
-											<span class="g-name">아바타UX</span>
-											<span class="en-text">Avatarux</span>
-										</div>
-										<div class="glass"></div>
+								</div>
+								<div class="g-info">
+									<span class="g-name">플레이스타</span>
+									<span class="en-text">Playstar</span>
+								</div>
+								<div class="glass"></div>
+							</div>
+						</a>
+						<a data-code="avatarux.live" data-title="에볼루션" class="sc-btn w-ba play_live">
+							<div class="g-panel w-ba" data-content="@o58u1">
+								<div class="g-cont">
+									<img class="g-img" src="aria/images/slot/avatarux.png">
+									<button type="button" class="play-btn btn-yellow">게임입장</button>
+								</div>
+								<div class="g-footer w-ba">
+									<div class="g-logo dflex-ac-jc w-ba">
+										<img class="icon-img" src="aria/images/slot/avatarux2.png">
 									</div>
-								</a>
+								</div>
+								<div class="g-info">
+									<span class="g-name">아바타UX</span>
+									<span class="en-text">Avatarux</span>
+								</div>
+								<div class="glass"></div>
+							</div>
+						</a>
 					</div>
 				</div>
 			</div>
 		</section>
+		<!-- end of game provider  -->
 	</main>
+	<!-- end of main content  -->
+
+	<!-- board area  -->
 	<section class="board-section w-ba">
 		<div class="container">
 			<div class="row dflex-ac-jc align-items-start">
-					<div class="board-panel event-board">
-	<div class="header dflex-ac-jc w-ba">
-		<div class="title-panel dflex-ac-js">
-			<div class="icon-panel dflex-ac-jc align-content-end">
-				<img class="icon" src="aria/images/icon/event-icon0896.png?v=80027">
-			</div>
-			<span data-text="이벤트" class="title">이벤트</span>
-		</div>
-		
-		<a href="javascript:void(0);" class="more-link ml-auto event-link"><i class="fa-solid fa-bars-staggered"></i> 더보기</a>
-	</div>
-	<div class="content btm-event-section">
-		<table>
-			<tbody>
-					<tr>
-						<td class="text-left">
-							<a href="javascript:void(0);" class="eventview-link" data-id="82">테스트 사이트입니다   신규회원 첫 입금 EVENT</a>
-						</td>
-						<td class="date-td"> - </td>
-					</tr>
-					<tr>
-						<td class="text-left">
-							<a href="javascript:void(0);" class="eventview-link" data-id="141">테스트 사이트입니다 Mr.</a>
-						</td>
-						<td class="date-td"> - </td>
-					</tr>
-					<tr>
-						<td class="text-left">
-							<a href="javascript:void(0);" class="eventview-link" data-id="142">Mr.</a>
-						</td>
-						<td class="date-td"> - </td>
-					</tr>
-					<tr>
-						<td class="text-left">
-							<a href="javascript:void(0);" class="eventview-link" data-id="143">Mr.</a>
-						</td>
-						<td class="date-td"> - </td>
-					</tr>
-					<tr>
-						<td class="text-left">
-							<a href="javascript:void(0);" class="eventview-link" data-id="144">Mr.</a>
-						</td>
-						<td class="date-td"> - </td>
-					</tr>
-			</tbody>
-		</table>
-	</div>
-		
+				<div class="board-panel event-board">
+					<div class="header dflex-ac-jc w-ba">
+						<div class="title-panel dflex-ac-js">
+							<div class="icon-panel dflex-ac-jc align-content-end">
+								<img class="icon" src="aria/images/icon/event-icon0896.png?v=80027">
+							</div>
+							<span data-text="이벤트" class="title">이벤트</span>
+						</div>
+						<a href="javascript:void(0);" class="more-link ml-auto event-link"><i class="fa-solid fa-bars-staggered"></i> 더보기</a>
 					</div>
-					
-				
-					<div class="realtime-board w-ba btm-finance-section">
-	<div class="realtime-nav dflex-ac-jc">
-		<button type="button" class="active">실시간출금</button>
-		<button type="button">실시간입금</button>
-	</div>
-	<div class="rb-panel w-ba">
-		<div class="rb-cont">
-			<div class="rolling-realtime withdraw-realtime active paused" style="overflow: hidden; position: relative; height: 240px;">
-				<ul style="position: absolute; margin: 0px; padding: 0px; top: 0px;">
-					
-						<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
-							<div class="user">
-								<span>nan*</span>
-							</div>
-							<div class="amount">
-								<span>100,000 원</span>
-							</div>
-							<div class="date">
-								<span>2023-11-14 14:42</span>
-							</div>
-						</li>
-					
-						<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
-							<div class="user">
-								<span>Bef***</span>
-							</div>
-							<div class="amount">
-								<span>2,010,000 원</span>
-							</div>
-							<div class="date">
-								<span>2023-11-14 14:42</span>
-							</div>
-						</li>
-					
-						<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
-							<div class="user">
-								<span>dog**</span>
-							</div>
-							<div class="amount">
-								<span>50,000 원</span>
-							</div>
-							<div class="date">
-								<span>2023-11-14 02:35</span>
-							</div>
-						</li>
-					
-						<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
-							<div class="user">
-								<span>pop**</span>
-							</div>
-							<div class="amount">
-								<span>35,240,000 원</span>
-							</div>
-							<div class="date">
-								<span>2023-11-14 01:33</span>
-							</div>
-						</li>
-					
-						<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
-							<div class="user">
-								<span>124**</span>
-							</div>
-							<div class="amount">
-								<span>70,000 원</span>
-							</div>
-							<div class="date">
-								<span>2023-10-27 14:00</span>
-							</div>
-						</li>
-					
-						<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
-							<div class="user">
-								<span>wte*****</span>
-							</div>
-							<div class="amount">
-								<span>40,000 원</span>
-							</div>
-							<div class="date">
-								<span>2023-10-27 00:19</span>
-							</div>
-						</li>
-					
-						<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
-							<div class="user">
-								<span>aaa**</span>
-							</div>
-							<div class="amount">
-								<span>50,000 원</span>
-							</div>
-							<div class="date">
-								<span>2023-09-13 03:44</span>
-							</div>
-						</li>
-					
-						<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
-							<div class="user">
-								<span>aaa**</span>
-							</div>
-							<div class="amount">
-								<span>500,000 원</span>
-							</div>
-							<div class="date">
-								<span>2023-09-08 11:31</span>
-							</div>
-						</li>
-					
-						<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
-							<div class="user">
-								<span>sli**</span>
-							</div>
-							<div class="amount">
-								<span>120,000 원</span>
-							</div>
-							<div class="date">
-								<span>2023-09-08 10:37</span>
-							</div>
-						</li>
-					
-						<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
-							<div class="user">
-								<span>sli**</span>
-							</div>
-							<div class="amount">
-								<span>50,000 원</span>
-							</div>
-							<div class="date">
-								<span>2023-09-08 00:22</span>
-							</div>
-						</li>
-					
-						<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
-							<div class="user">
-								<span>hig****</span>
-							</div>
-							<div class="amount">
-								<span>80,000 원</span>
-							</div>
-							<div class="date">
-								<span>2023-09-01 21:36</span>
-							</div>
-						</li>
-					
-						<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
-							<div class="user">
-								<span>dod***</span>
-							</div>
-							<div class="amount">
-								<span>50,000 원</span>
-							</div>
-							<div class="date">
-								<span>2023-09-01 21:20</span>
-							</div>
-						</li>
-					
-						<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
-							<div class="user">
-								<span>gao***</span>
-							</div>
-							<div class="amount">
-								<span>90,000 원</span>
-							</div>
-							<div class="date">
-								<span>2023-06-21 11:47</span>
-							</div>
-						</li>
-					
-						<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
-							<div class="user">
-								<span>sol***</span>
-							</div>
-							<div class="amount">
-								<span>50,000 원</span>
-							</div>
-							<div class="date">
-								<span>2023-06-01 01:17</span>
-							</div>
-						</li>
-					
-						<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
-							<div class="user">
-								<span>gao***</span>
-							</div>
-							<div class="amount">
-								<span>800,000 원</span>
-							</div>
-							<div class="date">
-								<span>2023-05-25 15:08</span>
-							</div>
-						</li>
-					
-						<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
-							<div class="user">
-								<span>han****</span>
-							</div>
-							<div class="amount">
-								<span>900,000 원</span>
-							</div>
-							<div class="date">
-								<span>2023-05-23 21:47</span>
-							</div>
-						</li>
-					
-						<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
-							<div class="user">
-								<span>jha*****</span>
-							</div>
-							<div class="amount">
-								<span>150,000 원</span>
-							</div>
-							<div class="date">
-								<span>2023-05-22 17:59</span>
-							</div>
-						</li>
-					
-						<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
-							<div class="user">
-								<span>sli**</span>
-							</div>
-							<div class="amount">
-								<span>50,000 원</span>
-							</div>
-							<div class="date">
-								<span>2023-04-26 21:20</span>
-							</div>
-						</li>
-					
-				</ul>
-			</div>
-			<div class="rolling-realtime deposit-realtime" style="overflow: hidden; position: relative; height: 240px;">
-				<ul style="position: absolute; margin: 0px; padding: 0px; top: 0px;">
-					
-						<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
-							<div class="user">
-								<span>김**</span>
-							</div>
-							<div class="amount">
-								<span>500,000 원</span>
-							</div>
-							<div class="date">
-								<span>2023-11-14 11:21</span>
-							</div>
-						</li>
-					
-						<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
-							<div class="user">
-								<span>크**</span>
-							</div>
-							<div class="amount">
-								<span>140,000 원</span>
-							</div>
-							<div class="date">
-								<span>2023-11-14 11:21</span>
-							</div>
-						</li>
-					
-						<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
-							<div class="user">
-								<span>빠따큰**</span>
-							</div>
-							<div class="amount">
-								<span>30,000 원</span>
-							</div>
-							<div class="date">
-								<span>2023-11-14 11:21</span>
-							</div>
-						</li>
-					
-						<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
-							<div class="user">
-								<span>김**</span>
-							</div>
-							<div class="amount">
-								<span>500,000 원</span>
-							</div>
-							<div class="date">
-								<span>2023-11-14 11:21</span>
-							</div>
-						</li>
-					
-						<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
-							<div class="user">
-								<span>크**</span>
-							</div>
-							<div class="amount">
-								<span>140,000 원</span>
-							</div>
-							<div class="date">
-								<span>2023-11-14 11:21</span>
-							</div>
-						</li>
-					
-						<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
-							<div class="user">
-								<span>빠따큰**</span>
-							</div>
-							<div class="amount">
-								<span>30,000 원</span>
-							</div>
-							<div class="date">
-								<span>2023-11-14 11:21</span>
-							</div>
-						</li>
-					
-						<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
-							<div class="user">
-								<span>김**</span>
-							</div>
-							<div class="amount">
-								<span>500,000 원</span>
-							</div>
-							<div class="date">
-								<span>2023-11-14 11:21</span>
-							</div>
-						</li>
-					
-						<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
-							<div class="user">
-								<span>크**</span>
-							</div>
-							<div class="amount">
-								<span>140,000 원</span>
-							</div>
-							<div class="date">
-								<span>2023-11-14 11:21</span>
-							</div>
-						</li>
-					
-						<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
-							<div class="user">
-								<span>김**</span>
-							</div>
-							<div class="amount">
-								<span>500,000 원</span>
-							</div>
-							<div class="date">
-								<span>2023-11-14 11:21</span>
-							</div>
-						</li>
-					
-						<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
-							<div class="user">
-								<span>크**</span>
-							</div>
-							<div class="amount">
-								<span>140,000 원</span>
-							</div>
-							<div class="date">
-								<span>2023-11-14 11:21</span>
-							</div>
-						</li>
-					
-						<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
-							<div class="user">
-								<span>빠따큰**</span>
-							</div>
-							<div class="amount">
-								<span>30,000 원</span>
-							</div>
-							<div class="date">
-								<span>2023-11-14 11:21</span>
-							</div>
-						</li>
-					
-						<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
-							<div class="user">
-								<span>김**</span>
-							</div>
-							<div class="amount">
-								<span>500,000 원</span>
-							</div>
-							<div class="date">
-								<span>2023-11-14 11:21</span>
-							</div>
-						</li>
-					
-						<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
-							<div class="user">
-								<span>빠따큰**</span>
-							</div>
-							<div class="amount">
-								<span>30,000 원</span>
-							</div>
-							<div class="date">
-								<span>2023-11-14 11:21</span>
-							</div>
-						</li>
-					
-						<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
-							<div class="user">
-								<span>크**</span>
-							</div>
-							<div class="amount">
-								<span>140,000 원</span>
-							</div>
-							<div class="date">
-								<span>2023-11-14 11:21</span>
-							</div>
-						</li>
-					
-						<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
-							<div class="user">
-								<span>김**</span>
-							</div>
-							<div class="amount">
-								<span>500,000 원</span>
-							</div>
-							<div class="date">
-								<span>2023-11-14 11:21</span>
-							</div>
-						</li>
-					
-						<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
-							<div class="user">
-								<span>빠따큰**</span>
-							</div>
-							<div class="amount">
-								<span>30,000 원</span>
-							</div>
-							<div class="date">
-								<span>2023-11-14 11:21</span>
-							</div>
-						</li>
-					
-						<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
-							<div class="user">
-								<span>크**</span>
-							</div>
-							<div class="amount">
-								<span>140,000 원</span>
-							</div>
-							<div class="date">
-								<span>2023-11-14 11:21</span>
-							</div>
-						</li>
-					
-						<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
-							<div class="user">
-								<span>빠따큰**</span>
-							</div>
-							<div class="amount">
-								<span>30,000 원</span>
-							</div>
-							<div class="date">
-								<span>2023-11-14 11:21</span>
-							</div>
-						</li>
-					
-						<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
-							<div class="user">
-								<span>크**</span>
-							</div>
-							<div class="amount">
-								<span>140,000 원</span>
-							</div>
-							<div class="date">
-								<span>2023-11-14 11:21</span>
-							</div>
-						</li>
-					
-						<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
-							<div class="user">
-								<span>김**</span>
-							</div>
-							<div class="amount">
-								<span>500,000 원</span>
-							</div>
-							<div class="date">
-								<span>2023-11-14 11:21</span>
-							</div>
-						</li>
-					
-				</ul>
-			</div>
-		</div>
-	</div>
-
-	<script>
-		if ($('.withdraw-realtime ul li').length > 5) {
-			$( function () {
-				$( '.withdraw-realtime' ).vTicker(
-					'init', {
-						speed: 1500,
-						pause: 0,
-						showItems: 5,
-						padding: 0,
-					});
-			});
-		}
-
-		if ($('.deposit-realtime ul li').length > 5) {
-			$( function () {
-				$( '.deposit-realtime' ).vTicker(
-					'init', {
-						speed: 1500,
-						pause: 0,
-						showItems: 5,
-						padding: 0,
-					});
-			});
-		}
-
-		$(".realtime-nav button").click(function(){
-			$(this).addClass('active');
-			$(this).siblings().removeClass('active');
-
-			var rti = $(this).index() + 1;
-
-			$(this).parentsUntil('.board-section').find('.rolling-realtime:nth-child(' + rti + ')').addClass('active');
-			$(this).parentsUntil('.board-section').find('.rolling-realtime:nth-child(' + rti + ')').siblings().removeClass('active');
-		});
-	</script>
+					<div class="content btm-event-section">
+						<table>
+							<tbody>
+								<tr>
+									<td class="text-left">
+										<a href="javascript:void(0);" class="eventview-link" data-id="82">테스트 사이트입니다   신규회원 첫 입금 EVENT</a>
+									</td>
+									<td class="date-td"> - </td>
+								</tr>
+								<tr>
+									<td class="text-left">
+										<a href="javascript:void(0);" class="eventview-link" data-id="141">테스트 사이트입니다 Mr.</a>
+									</td>
+									<td class="date-td"> - </td>
+								</tr>
+								<tr>
+									<td class="text-left">
+										<a href="javascript:void(0);" class="eventview-link" data-id="142">Mr.</a>
+									</td>
+									<td class="date-td"> - </td>
+								</tr>
+								<tr>
+									<td class="text-left">
+										<a href="javascript:void(0);" class="eventview-link" data-id="143">Mr.</a>
+									</td>
+									<td class="date-td"> - </td>
+								</tr>
+								<tr>
+									<td class="text-left">
+										<a href="javascript:void(0);" class="eventview-link" data-id="144">Mr.</a>
+									</td>
+									<td class="date-td"> - </td>
+								</tr>
+							</tbody>
+						</table>
 					</div>
-				
-				
-					<div class="board-panel notice-board">
+				</div>
 
-	<div class="header dflex-ac-jc w-ba">
-		<div class="title-panel dflex-ac-jc">
-			<div class="icon-panel dflex-ac-jc align-content-end">
-				<img class="icon" src="aria/images/icon/notice-icon.png">
-			</div>
-			<span data-text="이벤트" class="title">공지사항</span>
-		</div>
-		<a href="javascript:void(0);" class="more-link ml-auto notice-link"><i class="fa-solid fa-bars-staggered"></i> 더보기</a>
-	</div>
-	<div class="content btm-notice-section">
-		<table>
-			<tbody>
-				
-					<tr>
-						<td class="text-left">
-							<a href="javascript:void(0);" class="noticeview-link" data-id="122">테스트 사이트입니다  영상 오류시 해결 방법</a>
-						</td>
-						<td class="date-td">2022-08-09 12:41</td>
-					</tr>
-				
-					<tr>
-						<td class="text-left">
-							<a href="javascript:void(0);" class="noticeview-link" data-id="123">테스트 사이트입니다   **슬롯 (레드 타이거) 유로화 금액안내**</a>
-						</td>
-						<td class="date-td">2022-08-09 12:47</td>
-					</tr>
-				
-					<tr>
-						<td class="text-left">
-							<a href="javascript:void(0);" class="noticeview-link" data-id="181">https://t.me/bonsa_365   사칭 주의 하세요 사기꾼 입니다  테스트 사이트입니다</a>
-						</td>
-						<td class="date-td">2023-09-01 17:00</td>
-					</tr>
-				
-			</tbody>
-		</table>
-	</div>
-
-
+				<div class="realtime-board w-ba btm-finance-section">
+					<div class="realtime-nav dflex-ac-jc">
+						<button type="button" class="active">실시간출금</button>
+						<button type="button">실시간입금</button>
 					</div>
+					<div class="rb-panel w-ba">
+						<div class="rb-cont">
+							<div class="rolling-realtime withdraw-realtime active paused" style="overflow: hidden; position: relative; height: 240px;">
+								<ul style="position: absolute; margin: 0px; padding: 0px; top: 0px;">
+									<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
+										<div class="user">
+											<span>nan*</span>
+										</div>
+										<div class="amount">
+											<span>100,000 원</span>
+										</div>
+										<div class="date">
+											<span>2023-11-14 14:42</span>
+										</div>
+									</li>
+									<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
+										<div class="user">
+											<span>Bef***</span>
+										</div>
+										<div class="amount">
+											<span>2,010,000 원</span>
+										</div>
+										<div class="date">
+											<span>2023-11-14 14:42</span>
+										</div>
+									</li>
+									<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
+										<div class="user">
+											<span>dog**</span>
+										</div>
+										<div class="amount">
+											<span>50,000 원</span>
+										</div>
+										<div class="date">
+											<span>2023-11-14 02:35</span>
+										</div>
+									</li>
+									<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
+										<div class="user">
+											<span>pop**</span>
+										</div>
+										<div class="amount">
+											<span>35,240,000 원</span>
+										</div>
+										<div class="date">
+											<span>2023-11-14 01:33</span>
+										</div>
+									</li>
+									<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
+										<div class="user">
+											<span>124**</span>
+										</div>
+										<div class="amount">
+											<span>70,000 원</span>
+										</div>
+										<div class="date">
+											<span>2023-10-27 14:00</span>
+										</div>
+									</li>
+									<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
+										<div class="user">
+											<span>wte*****</span>
+										</div>
+										<div class="amount">
+											<span>40,000 원</span>
+										</div>
+										<div class="date">
+											<span>2023-10-27 00:19</span>
+										</div>
+									</li>
+									<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
+										<div class="user">
+											<span>aaa**</span>
+										</div>
+										<div class="amount">
+											<span>50,000 원</span>
+										</div>
+										<div class="date">
+											<span>2023-09-13 03:44</span>
+										</div>
+									</li>
+									<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
+										<div class="user">
+											<span>aaa**</span>
+										</div>
+										<div class="amount">
+											<span>500,000 원</span>
+										</div>
+										<div class="date">
+											<span>2023-09-08 11:31</span>
+										</div>
+									</li>
+									<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
+										<div class="user">
+											<span>sli**</span>
+										</div>
+										<div class="amount">
+											<span>120,000 원</span>
+										</div>
+										<div class="date">
+											<span>2023-09-08 10:37</span>
+										</div>
+									</li>
+									<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
+										<div class="user">
+											<span>sli**</span>
+										</div>
+										<div class="amount">
+											<span>50,000 원</span>
+										</div>
+										<div class="date">
+											<span>2023-09-08 00:22</span>
+										</div>
+									</li>
+									<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
+										<div class="user">
+											<span>hig****</span>
+										</div>
+										<div class="amount">
+											<span>80,000 원</span>
+										</div>
+										<div class="date">
+											<span>2023-09-01 21:36</span>
+										</div>
+									</li>
+									<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
+										<div class="user">
+											<span>dod***</span>
+										</div>
+										<div class="amount">
+											<span>50,000 원</span>
+										</div>
+										<div class="date">
+											<span>2023-09-01 21:20</span>
+										</div>
+									</li>
+									<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
+										<div class="user">
+											<span>gao***</span>
+										</div>
+										<div class="amount">
+											<span>90,000 원</span>
+										</div>
+										<div class="date">
+											<span>2023-06-21 11:47</span>
+										</div>
+									</li>
+									<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
+										<div class="user">
+											<span>sol***</span>
+										</div>
+										<div class="amount">
+											<span>50,000 원</span>
+										</div>
+										<div class="date">
+											<span>2023-06-01 01:17</span>
+										</div>
+									</li>
+									<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
+										<div class="user">
+											<span>gao***</span>
+										</div>
+										<div class="amount">
+											<span>800,000 원</span>
+										</div>
+										<div class="date">
+											<span>2023-05-25 15:08</span>
+										</div>
+									</li>
+									<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
+										<div class="user">
+											<span>han****</span>
+										</div>
+										<div class="amount">
+											<span>900,000 원</span>
+										</div>
+										<div class="date">
+											<span>2023-05-23 21:47</span>
+										</div>
+									</li>
+									<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
+										<div class="user">
+											<span>jha*****</span>
+										</div>
+										<div class="amount">
+											<span>150,000 원</span>
+										</div>
+										<div class="date">
+											<span>2023-05-22 17:59</span>
+										</div>
+									</li>
+									<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
+										<div class="user">
+											<span>sli**</span>
+										</div>
+										<div class="amount">
+											<span>50,000 원</span>
+										</div>
+										<div class="date">
+											<span>2023-04-26 21:20</span>
+										</div>
+									</li>
+								</ul>
+							</div>
+							<div class="rolling-realtime deposit-realtime" style="overflow: hidden; position: relative; height: 240px;">
+								<ul style="position: absolute; margin: 0px; padding: 0px; top: 0px;">
+									<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
+										<div class="user">
+											<span>김**</span>
+										</div>
+										<div class="amount">
+											<span>500,000 원</span>
+										</div>
+										<div class="date">
+											<span>2023-11-14 11:21</span>
+										</div>
+									</li>
+									<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
+										<div class="user">
+											<span>크**</span>
+										</div>
+										<div class="amount">
+											<span>140,000 원</span>
+										</div>
+										<div class="date">
+											<span>2023-11-14 11:21</span>
+										</div>
+									</li>
+									<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
+										<div class="user">
+											<span>빠따큰**</span>
+										</div>
+										<div class="amount">
+											<span>30,000 원</span>
+										</div>
+										<div class="date">
+											<span>2023-11-14 11:21</span>
+										</div>
+									</li>
+									<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
+										<div class="user">
+											<span>김**</span>
+										</div>
+										<div class="amount">
+											<span>500,000 원</span>
+										</div>
+										<div class="date">
+											<span>2023-11-14 11:21</span>
+										</div>
+									</li>
+									<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
+										<div class="user">
+											<span>크**</span>
+										</div>
+										<div class="amount">
+											<span>140,000 원</span>
+										</div>
+										<div class="date">
+											<span>2023-11-14 11:21</span>
+										</div>
+									</li>
+									<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
+										<div class="user">
+											<span>빠따큰**</span>
+										</div>
+										<div class="amount">
+											<span>30,000 원</span>
+										</div>
+										<div class="date">
+											<span>2023-11-14 11:21</span>
+										</div>
+									</li>
+									<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
+										<div class="user">
+											<span>김**</span>
+										</div>
+										<div class="amount">
+											<span>500,000 원</span>
+										</div>
+										<div class="date">
+											<span>2023-11-14 11:21</span>
+										</div>
+									</li>
+									<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
+										<div class="user">
+											<span>크**</span>
+										</div>
+										<div class="amount">
+											<span>140,000 원</span>
+										</div>
+										<div class="date">
+											<span>2023-11-14 11:21</span>
+										</div>
+									</li>
+									<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
+										<div class="user">
+											<span>김**</span>
+										</div>
+										<div class="amount">
+											<span>500,000 원</span>
+										</div>
+										<div class="date">
+											<span>2023-11-14 11:21</span>
+										</div>
+									</li>
+									<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
+										<div class="user">
+											<span>크**</span>
+										</div>
+										<div class="amount">
+											<span>140,000 원</span>
+										</div>
+										<div class="date">
+											<span>2023-11-14 11:21</span>
+										</div>
+									</li>
+									<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
+										<div class="user">
+											<span>빠따큰**</span>
+										</div>
+										<div class="amount">
+											<span>30,000 원</span>
+										</div>
+										<div class="date">
+											<span>2023-11-14 11:21</span>
+										</div>
+									</li>
+									<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
+										<div class="user">
+											<span>김**</span>
+										</div>
+										<div class="amount">
+											<span>500,000 원</span>
+										</div>
+										<div class="date">
+											<span>2023-11-14 11:21</span>
+										</div>
+									</li>
+									<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
+										<div class="user">
+											<span>빠따큰**</span>
+										</div>
+										<div class="amount">
+											<span>30,000 원</span>
+										</div>
+										<div class="date">
+											<span>2023-11-14 11:21</span>
+										</div>
+									</li>
+									<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
+										<div class="user">
+											<span>크**</span>
+										</div>
+										<div class="amount">
+											<span>140,000 원</span>
+										</div>
+										<div class="date">
+											<span>2023-11-14 11:21</span>
+										</div>
+									</li>
+									<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
+										<div class="user">
+											<span>김**</span>
+										</div>
+										<div class="amount">
+											<span>500,000 원</span>
+										</div>
+										<div class="date">
+											<span>2023-11-14 11:21</span>
+										</div>
+									</li>
+									<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
+										<div class="user">
+											<span>빠따큰**</span>
+										</div>
+										<div class="amount">
+											<span>30,000 원</span>
+										</div>
+										<div class="date">
+											<span>2023-11-14 11:21</span>
+										</div>
+									</li>
+									<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
+										<div class="user">
+											<span>크**</span>
+										</div>
+										<div class="amount">
+											<span>140,000 원</span>
+										</div>
+										<div class="date">
+											<span>2023-11-14 11:21</span>
+										</div>
+									</li>
+									<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
+										<div class="user">
+											<span>빠따큰**</span>
+										</div>
+										<div class="amount">
+											<span>30,000 원</span>
+										</div>
+										<div class="date">
+											<span>2023-11-14 11:21</span>
+										</div>
+									</li>
+									<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
+										<div class="user">
+											<span>크**</span>
+										</div>
+										<div class="amount">
+											<span>140,000 원</span>
+										</div>
+										<div class="date">
+											<span>2023-11-14 11:21</span>
+										</div>
+									</li>
+									<li class="tr" style="margin: 0px; padding: 0px; height: 48px;">
+										<div class="user">
+											<span>김**</span>
+										</div>
+										<div class="amount">
+											<span>500,000 원</span>
+										</div>
+										<div class="date">
+											<span>2023-11-14 11:21</span>
+										</div>
+									</li>
+								</ul>
+							</div>
+						</div>
+					</div>
+					<script>
+						if ($('.withdraw-realtime ul li').length > 5) {
+							$( function () {
+								$( '.withdraw-realtime' ).vTicker(
+									'init', {
+										speed: 1500,
+										pause: 0,
+										showItems: 5,
+										padding: 0,
+									});
+							});
+						}
+
+						if ($('.deposit-realtime ul li').length > 5) {
+							$( function () {
+								$( '.deposit-realtime' ).vTicker(
+									'init', {
+										speed: 1500,
+										pause: 0,
+										showItems: 5,
+										padding: 0,
+									});
+							});
+						}
+
+						$(".realtime-nav button").click(function(){
+							$(this).addClass('active');
+							$(this).siblings().removeClass('active');
+
+							var rti = $(this).index() + 1;
+
+							$(this).parentsUntil('.board-section').find('.rolling-realtime:nth-child(' + rti + ')').addClass('active');
+							$(this).parentsUntil('.board-section').find('.rolling-realtime:nth-child(' + rti + ')').siblings().removeClass('active');
+						});
+					</script>
+				</div>
 				
+				<div class="board-panel notice-board">
+					<div class="header dflex-ac-jc w-ba">
+						<div class="title-panel dflex-ac-jc">
+							<div class="icon-panel dflex-ac-jc align-content-end">
+								<img class="icon" src="aria/images/icon/notice-icon.png">
+							</div>
+							<span data-text="이벤트" class="title">공지사항</span>
+						</div>
+						<a href="javascript:void(0);" class="more-link ml-auto notice-link"><i class="fa-solid fa-bars-staggered"></i> 더보기</a>
+					</div>
+					<div class="content btm-notice-section">
+						<table>
+							<tbody>
+								<tr>
+									<td class="text-left">
+										<a href="javascript:void(0);" class="noticeview-link" data-id="122">테스트 사이트입니다  영상 오류시 해결 방법</a>
+									</td>
+									<td class="date-td">2022-08-09 12:41</td>
+								</tr>
+								<tr>
+									<td class="text-left">
+										<a href="javascript:void(0);" class="noticeview-link" data-id="123">테스트 사이트입니다   **슬롯 (레드 타이거) 유로화 금액안내**</a>
+									</td>
+									<td class="date-td">2022-08-09 12:47</td>
+								</tr>
+								<tr>
+									<td class="text-left">
+										<a href="javascript:void(0);" class="noticeview-link" data-id="181">https://t.me/bonsa_365   사칭 주의 하세요 사기꾼 입니다  테스트 사이트입니다</a>
+									</td>
+									<td class="date-td">2023-09-01 17:00</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
 			</div>
 		</div>
 		
 		<div class="container customer-container">
 			<div class="row dflex-ac-jc align-items-start">
-				
-					
-						
-							<a class="customer-btn w-ba" href="01012345678.html" target="_blank">
-						
-						
-					
-						<div class="g-panel w-ba">
-							<div class="g-logo dflex-ac-jc w-ba">
-								<img class="icon-img" src="aria/images/icon/phone.png">
-							</div>
-							<div class="g-info">
-								<span class="g-name">전화문의</span>
-								<span class="en-text">01012345678</span>
-							</div>
-							<div class="glass"></div>
+				<a class="customer-btn w-ba" href="01012345678.html" target="_blank">
+					<div class="g-panel w-ba">
+						<div class="g-logo dflex-ac-jc w-ba">
+							<img class="icon-img" src="aria/images/icon/phone.png">
 						</div>
-					</a>
-				
-				
-					
-						
-						
-							<a class="customer-btn w-ba">
-						
-					
-						<div class="g-panel w-ba">
-							<div class="g-logo dflex-ac-jc w-ba">
-								<img class="icon-img" src="aria/images/icon/telegram.png">
-							</div>
-							<div class="g-info">
-								<span class="g-name">텔레그램</span>
-								<span class="en-text">0telegram.com</span>
-							</div>
-							<div class="glass"></div>
+						<div class="g-info">
+							<span class="g-name">전화문의</span>
+							<span class="en-text">01012345678</span>
 						</div>
-					</a>
-				
-				
-					
-						
-						
-							<a class="customer-btn w-ba">
-						
-					
-						<div class="g-panel w-ba">
-							<div class="g-logo dflex-ac-jc w-ba">
-								<img class="icon-img" src="aria/images/icon/kakao.png">
-							</div>
-							<div class="g-info">
-								<span class="g-name">카톡</span>
-								<span class="en-text">0kakao.com</span>
-							</div>
-							<div class="glass"></div>
+						<div class="glass"></div>
+					</div>
+				</a>
+				<a class="customer-btn w-ba">
+					<div class="g-panel w-ba">
+						<div class="g-logo dflex-ac-jc w-ba">
+							<img class="icon-img" src="aria/images/icon/telegram.png">
 						</div>
-					</a>
-				
+						<div class="g-info">
+							<span class="g-name">텔레그램</span>
+							<span class="en-text">0telegram.com</span>
+						</div>
+						<div class="glass"></div>
+					</div>
+				</a>
+				<a class="customer-btn w-ba">
+					<div class="g-panel w-ba">
+						<div class="g-logo dflex-ac-jc w-ba">
+							<img class="icon-img" src="aria/images/icon/kakao.png">
+						</div>
+						<div class="g-info">
+							<span class="g-name">카톡</span>
+							<span class="en-text">0kakao.com</span>
+						</div>
+						<div class="glass"></div>
+					</div>
+				</a>
 			</div>
 		</div>
 	</section>
+	<!-- end of board area  -->
+
 	<script type="text/javascript">
+		$(function() 
+		{
+			let lastCategory = getSessionStorage('category', 'casino');
+			
+			$('.toggle-section').on('click', '.toggle-btn', function() {
+				let target = $(this).data('target');
+				setSessionStorage('category', target);
+				let isReClick = $(this).hasClass("active");
 
-	$(function() {
-		// 게임탭 선택
-		let lastCategory = getSessionStorage('category', 'casino');
-		
-		$('.toggle-section').on('click', '.toggle-btn', function() {
-			let target = $(this).data('target');
-			setSessionStorage('category', target);
-			let isReClick = $(this).hasClass("active");
+				$(this).addClass("active");
+				$(this).siblings("button").removeClass("active");
 
-			$(this).addClass("active");
-			$(this).siblings("button").removeClass("active");
+				$('.game-provider .sc-section').removeClass("active");
+				$('.game-provider .'+target+'-section').addClass("active");
 
-			$('.game-provider .sc-section').removeClass("active");
-			$('.game-provider .'+target+'-section').addClass("active");
-
-			if ($(this).data('click-toggled')) {
-				$("html, body").animate({
-					scrollTop: $(".header-section").offset().top
-				}, 500);
-			}
-
-			$(this).data('click-toggled', true);
-
-			if (!isReClick || !$("."+ target +"-section").children().length) getGameList(target);
-		})
-
-		$("." + lastCategory + "-toggle").click();
-
-		$('#tb_main_notice').on('click', '.title', function() {
-			ajaxSend('/front/header/notice/info.json', {
-				id: $(this).data('id')
-			}, function(jData) {
-				if (jData.success) {
-					$('#notice_pop').popup('show');
-					$('#notice_pop .title').html(jData.data.title);
-					$('#notice_pop .content').html(removeDomainFromImgUrl(jData.data.content));
-				} else {
-					if (jData.message) showMsg(jData.message, 'error');
+				if ($(this).data('click-toggled')) {
+					$("html, body").animate({
+						scrollTop: $(".header-section").offset().top
+					}, 500);
 				}
+
+				$(this).data('click-toggled', true);
+
+				if (!isReClick || !$("."+ target +"-section").children().length) getGameList(target);
+			})
+
+			$("." + lastCategory + "-toggle").click();
+
+			$('#tb_main_notice').on('click', '.title', function() {
+				ajaxSend('/front/header/notice/info.json', {
+					id: $(this).data('id')
+				}, function(jData) {
+					if (jData.success) {
+						$('#notice_pop').popup('show');
+						$('#notice_pop .title').html(jData.data.title);
+						$('#notice_pop .content').html(removeDomainFromImgUrl(jData.data.content));
+					} else {
+						if (jData.message) showMsg(jData.message, 'error');
+					}
+				});
 			});
+
+			$('.main_con_wrap').on('click', '.more', function() {
+				$('#main_pop').find('.pop_content').empty();
+				$('#main_pop').find('.pop_loading').removeClass('hide');
+				$('#main_pop').popup('show');
+
+				loading.open();
+				ajaxGetSend('/front/header/main', {
+					'category': "item-notice"
+				}, function(data) {
+					$('#main_pop').find('.pop_loading').addClass('hide');
+					$('#main_pop .popupbox>.pop_content').html(data);
+					loading.close();
+				}, function () {
+					loading.close();
+				});
+			})
+
 		});
-
-		$('.main_con_wrap').on('click', '.more', function() {
-			$('#main_pop').find('.pop_content').empty();
-			$('#main_pop').find('.pop_loading').removeClass('hide');
-			$('#main_pop').popup('show');
-
+		function getGameList(target) 
+		{
 			loading.open();
-			ajaxGetSend('/front/header/main', {
-				'category': "item-notice"
+			ajaxGetSend('/front/game/' + target, {
 			}, function(data) {
-				$('#main_pop').find('.pop_loading').addClass('hide');
-				$('#main_pop .popupbox>.pop_content').html(data);
+				$("." + target + "-section").html(data);
 				loading.close();
 			}, function () {
 				loading.close();
 			});
-		})
-
-	});
-
-	function getGameList(target) {
-		loading.open();
-		ajaxGetSend('/front/game/' + target, {
-		}, function(data) {
-			$("." + target + "-section").html(data);
-			loading.close();
-		}, function () {
-			loading.close();
-		});
-	}
-
-
-
+		}
 	</script>
+
 	<!-- footer -->
 	<footer class="footer-section w-ba">
 		<div class="container">
@@ -1877,14 +1790,14 @@
 			</div>
 		</div>
 	</footer>
-	<!-- //footer -->
+	<!-- end of footer -->
 
 	<div class="sn-overlay"></div>
 	<button class="scroll-top w-ba"><i class="fas fa-caret-up"></i></button>
 </div>
 
+<!-- notice popup -->
 <div class="notice_popup_area">
-	<!-- 팝업공지1 -->
 	<div class="notice_popup hidden" data-id="442" style="z-index: 1;">
 		<div class="notice_popup_wrap">
 			<div class="notice_popup_btn_wrap">
@@ -1942,8 +1855,10 @@
 		}
 	</script>
 </div>
+<!-- end of notice popup -->
 
 <!-- before login -->
+
 <!-- ------------------------------------- Login ------------------------------------ -->
 <div class="loginModal modal fade"  tabindex="-1" role="dialog">
 	<div class="modal-dialog modal-dialog-centered" role="document">
@@ -1969,7 +1884,6 @@
 				</div>
 			</div>
 			<div class="modal-body pt-md-5 pt-3">
-				
 				<form name="pop_login" onsubmit="onClickLogin(); return false;" data-parsley-validate>
 					<div class="form-container">
 						<div class="form-group">
@@ -1999,7 +1913,6 @@
 						<button type="button" class="btn-red join-link">회원가입</button>
 					</div>
 				</form>
-
 			</div>
 		</div>
 	</div>
@@ -2030,6 +1943,7 @@ $(function() {
 	});
 });
 </script>
+
 <!-- ------------------------------------- Join ------------------------------------ -->
 <div class="joinModal modal fade" tabindex="-1" role="dialog">
 	<div class="modal-dialog modal-dialog-centered" role="document">
@@ -2112,7 +2026,6 @@ $(function() {
 											</div>
 										</div>
 									</div>
-									
 								</div>
 							</div>
 							<div class="col-12 col-md-6">
@@ -2299,53 +2212,55 @@ $(function() {
 		}
 	}
 </script>
-		<!-- after login -->
-		<script type="text/javascript">
-			document.documentElement.style.setProperty('--ver', 'v=80027');
-			window.onresize = function () {
-				updatePopupDimension();
+
+<!-- after login -->
+<script type="text/javascript">
+	document.documentElement.style.setProperty('--ver', 'v=80027');
+	window.onresize = function () {
+		updatePopupDimension();
+	}
+
+	function updatePopupDimension() {
+		let maxHH = $(document).height() / 2;
+		$('.notice_popup_area .notice_popup').each(function () {
+			let hh = $(this).outerHeight();
+			if (maxHH < hh) {
+				maxHH = hh;
 			}
+		});
+		$('.notice_popup_area').attr('style', "--popup-area-height: " + maxHH + "px");
+	}
 
-			function updatePopupDimension() {
-				let maxHH = $(document).height() / 2;
-				$('.notice_popup_area .notice_popup').each(function () {
-					let hh = $(this).outerHeight();
-					if (maxHH < hh) {
-						maxHH = hh;
-					}
-				});
-				$('.notice_popup_area').attr('style', "--popup-area-height: " + maxHH + "px");
-			}
+	$(document).ready(function () {
+		updatePopupDimension();
 
-			$(document).ready(function () {
-				updatePopupDimension();
+		// $(document).bind('keydown',function(e){
+		// 	if ( e.keyCode === 123 /* F12 */) {
+		// 		e.preventDefault();
+		// 		e.returnValue = false;
+		// 	}
+		// });
 
-				// $(document).bind('keydown',function(e){
-				// 	if ( e.keyCode === 123 /* F12 */) {
-				// 		e.preventDefault();
-				// 		e.returnValue = false;
-				// 	}
-				// });
+		// $(document).bind("contextmenu", function (e) {
+		// 	return false;
+		// });
+	});
 
-				// $(document).bind("contextmenu", function (e) {
-				// 	return false;
-				// });
-			});
+	// $(document).bind('selectstart', function () {
+	// 	return false;
+	// });
 
-			// $(document).bind('selectstart', function () {
-			// 	return false;
-			// });
+	// $(document).bind('dragstart', function () {
+	// 	return false;
+	// });
 
-			// $(document).bind('dragstart', function () {
-			// 	return false;
-			// });
+	// window.onload = function () {
+	//     if (getCookie('popupID1736') === "master_done") {
+	//     } else {
+	//         addPopup('popupID1736', '300', '500', '450', '600');
+	//     }
+	// };
+</script> 
 
-			// window.onload = function () {
-			//     if (getCookie('popupID1736') === "master_done") {
-			//     } else {
-			//         addPopup('popupID1736', '300', '500', '450', '600');
-			//     }
-			// };
-		</script> 
-	</body>
+</body>
 </html>
