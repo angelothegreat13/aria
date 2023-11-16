@@ -1,0 +1,964 @@
+/* Responsive  Styles */
+
+.mobile {
+	display: none !important;
+}
+
+.mobile2 {
+	display: none !important;
+}
+
+.before-login .mobile button {
+	width: calc(50% - 8px);
+	height: 35px;
+	margin: 0 4px;
+}
+
+.after-login .mobile button {
+	width: calc(50% - 8px);
+	height: 35px;
+	margin: 0 4px;
+}
+
+.mypage-btn i {
+	font-size: 16px;
+	transition: 0.3s;
+}
+
+.mypage-btn.opened i {
+	transform: rotate(180deg);
+}
+
+.modal-title-mob {
+	display: none;
+	color: var(--white-yellow);
+	font-size: 10px;
+	letter-spacing: 2px;
+	margin-top: -5px;
+}
+
+.sn-overlay {
+	width: 100%;
+	height: 100%;
+	position: fixed;
+	z-index: 98;
+	background-color: rgba(11, 2, 16, 0.5);
+	top: 0;
+	left: 0;
+	pointer-events: none;
+	opacity: 0;
+	transition: 0.3s;
+}
+
+.sn-overlay.active {
+	opacity: 1;
+	pointer-events: auto;
+}
+
+ul, ol, li, dl, dd, dt {
+	margin: 0;
+	list-style: none;
+}
+/* - - - - - - - - - - Popup Queries - - - - - - - - - - */
+
+
+@media screen and (max-width: 990px) {
+	/* mobile device */
+	.notice_popup_area {
+		top: 4rem;
+		left: 0;
+		max-width: 100%;
+	}
+	/* .notice_popup {
+		position: absolute;
+		min-width: 5rem;
+	}
+	.notice_popup:not(.hide) ~ .notice_popup {
+		display: none;
+	} */
+	.notice_popup * {
+		word-break: break-all;
+		max-width: 100%;
+		height: auto;
+	}
+	.notice_popup .notice_popup_text {
+		padding: 1rem;
+	}
+
+}
+
+
+/* - - - - - - - - - - Banner Queries - - - - - - - - - - */
+
+@media(max-width:1300px){
+
+	.banner-section {
+		height: auto;
+		padding: 0;
+	}
+
+	.banner-section .banner-bg {
+		display: block;
+		width: 123.9%;
+		left: -11.95%;
+	}
+
+	.banner-section .container {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		margin: auto;
+	}
+
+	.logo {
+		width: 18.59%;
+	}
+
+	.banner-carousel {
+		margin-top: 1%;
+	}
+
+	.banner-carousel .text-panel {
+		padding: 1.5% 15px;
+		margin-bottom: 1.25%;
+	}
+
+	.banner-carousel .text-panel:before {
+		height: 92%;
+	}
+
+}
+
+/*@media(max-width:1300px){
+
+	.banner-section .banner-bg {
+		display: block;
+		width: 130%;
+		left: -15%;
+	}
+
+}*/
+
+@media(max-width:1140px){
+
+	.banner-section .banner-bg {
+		width: 140%;
+		left: -20%;
+	}
+
+}
+
+@media(max-width:900px){
+
+	.banner-carousel .text-panel {
+		margin-bottom: 1.75%;
+	}
+
+	.banner-carousel .text-panel h1 {
+		font-size: 3.4vw;
+	}
+
+	.banner-carousel .text-panel h2 {
+		font-size: 2.6vw;
+	}
+	.virtual_bet .game_box .view_section .bet_info .bet_box {
+		grid-template-columns: 1fr 2fr 2fr 2fr;
+  }
+}
+
+@media(max-width:767px){ 
+
+	.logo {
+		width: 22%;
+	}
+
+	.banner-section .banner-bg {
+		width: 170%;
+		left: -35%;
+	}
+	
+	.banner-carousel .text-panel {
+		padding: 3% 15px;
+		margin-bottom: 2.5%;
+	}
+
+	.virtual_bet .game_box{
+		flex-direction: column-reverse;
+		padding: 0;
+	}
+	.virtual_bet .game_box .game_section{
+		width: 100%;
+		height: auto;
+	}
+	.virtual_bet .game_box .view_section{
+		width: 100%;
+		height: auto;
+	}
+}
+
+@media(max-width:500px){ 
+
+	.logo {
+		width: 25%;
+		margin-top: 1%;
+	}
+
+	.carousel-indicators li {
+		width: 20px;
+		height: 4px;
+		margin: 0 2px;
+	}
+
+	.carousel-indicators li.active {
+		width: 30px;
+		height: 4px;
+	}
+
+	.banner-section .banner-bg {
+		width: 180%;
+		left: -40%;
+	}
+
+	.banner-background {
+		width: 120%;
+		left: -10%;
+	}
+
+}
+
+/*  - - - - - - - - - - Header Queries - - - - - - - - - - */
+
+@media(max-width: 1650px) { 
+
+	.main-menu li a {
+		padding: 0 20px;
+	}
+
+	.before-login .desktop button {
+		width: 100px;
+	}
+
+	.before-login .input-panel {
+		width: 150px;
+	}
+
+}
+
+@media(max-width: 1470px) { 
+
+	.main-menu li a {
+		padding: 0 15px;
+	}
+
+	.before-login .desktop button {
+		width: 80px;
+	}
+
+	.before-login .input-panel {
+		width: 125px;
+	}
+
+}
+
+@media (min-width: 1281px) {
+	.sidebar {
+		display: block !important;
+	}
+}
+
+@media(max-width: 1280px) { 
+
+	.mobile {
+		display: block !important;
+	}
+
+	.mobile2 {
+		display: table-cell !important;
+	}
+
+	.desktop {
+		display: none !important;
+	}
+
+	.header-section {
+		height: auto;
+	}
+
+	.header-section .container {
+		padding: 0;
+	}
+
+	.header-section:before, .header-section:after {
+		height: 3px;
+	}
+
+	.main-menu {
+		width: 100%;
+		table-layout: fixed;
+		border-bottom: solid 1px rgba(255, 255, 255, 0.1);
+	}
+
+	.main-menu li a {
+		height: 43px;
+		padding: 2px 0 0;
+	}
+
+	.main-menu li a:before {
+		height: calc(100% - 4px);
+	}
+
+	.bal-container {
+		width: 100%;
+		padding: 8px 5px 11px;
+	}
+
+	.sidebar {
+		width: 100%;
+		margin: 10px auto 0;
+		padding: 15px 10px;
+		background-color: rgba(0, 0, 0, 0.25);
+		display: none;
+	}
+
+	.sidebar-fixed .al-inner,
+	.sidebar .al-inner {
+		width: 100%;
+		max-width: 500px;
+		margin: 0 auto;
+	}
+
+	/* Roulette */
+	.roulette-container {
+		position: relative;
+		display: block;
+		width: 100%;
+		scale: initial;
+		right: 0;
+		top: 8.2vw;
+		background: url(../images/common/roul-bg.png);
+		z-index: 100;
+	}
+
+	.roulette .cash-font {
+		font-size: 1.5em;
+	}	
+}
+
+@media(max-width:900px){ 
+	.toggle-section .container {
+		flex-wrap: wrap;
+		gap: 5px;
+	}
+
+	.toggle-btn.mini-toggle .btn-panel {
+		font-size: .9em;
+	}
+	
+	.toggle-btn .indicator {
+		font-size: 18px;
+		top: -2px;
+		position: relative;
+	}
+
+	.toggle-btn .icon-panel {
+		display: none !important;
+	}
+
+	.toggle-section {
+		padding: 0 5px;
+	}
+
+	.toggle-btn {
+		width: calc(35% - 8px);
+		height: 50px;
+		margin: 10px 4px 0;
+	}
+	.toggle-2 .toggle-btn {
+		width: calc(40% - 8px);
+	}
+	.toggle-btn.mini-toggle {
+		flex-grow: 1;
+	}
+
+	.toggle-btn .btn-panel {
+		border-radius: 5px;
+	}
+
+	.toggle-btn .btn-panel:after {
+		display: none;
+	}
+
+	.toggle-btn .icon-panel {
+		width: 80px;
+		height: 50px;
+	}
+
+	.toggle-btn:first-child .icon-panel {
+		margin-left: -10px;
+		margin-right: 0;
+	}
+
+	.toggle-btn:last-child .icon-panel {
+		margin-right: -10px;
+		margin-left: 0;
+	}
+
+	.toggle-btn .icon-panel img {
+		max-height: 44px;
+	}
+
+	.toggle-btn {
+		font-size: 12px;
+	}
+
+	.toggle-btn .indicator {
+		font-size: 14px;
+	}
+
+	.toggle-btn:first-child .btn-panel .category {
+		margin-left: 0;
+	}
+
+	.toggle-btn:last-child .btn-panel .category {
+		margin-right: 0;
+	}
+	.toggle-btn:first-child .btn-panel {
+		margin-right: 0;
+	}
+	
+	.toggle-btn:last-child .btn-panel {
+		margin-left: 0;
+	}
+}
+
+@media(max-width:500px){ 
+
+	.main-menu li a {
+		font-size: 12px;
+	}
+
+	.main-menu li a i {
+		display: none;
+	}
+
+}
+
+@media(max-width:414px){ 
+
+	.sidebar .al-inner {
+		flex-wrap:wrap;
+	}
+
+	.sidebar .al-cont{
+		width:50% !important;
+		height:40px;
+		margin:2px 0;
+		padding:5px 10px;
+	}
+
+	.sidebar .al-cont:nth-child(1) {
+		order: 1;
+	}
+
+	.sidebar .al-cont:nth-child(2) {
+		order: 3;
+	}
+
+	.sidebar .al-cont:nth-child(3) {
+		order: 5;
+	}
+
+	.sidebar .al-cont:nth-child(4) {
+		order: 2;
+	}
+
+	.sidebar .al-cont:nth-child(5) {
+		order: 4;
+	}
+
+	.sidebar .al-cont:nth-child(6) {
+		order: 6;
+	}
+
+	.sidebar .al-cont .labels {
+		top: 0;
+		bottom: 0;
+		left: 5px;
+		margin: auto 0;
+	}
+
+	.sidebar .btn-group{
+		padding:0;
+		background-color:transparent;
+		background-image: none;
+		border:none;
+	}
+
+	.sidebar .btn-group button{
+		/* width: calc(50% - 8px); */
+		height: 30px;
+		font-size: 12px;
+		margin: 0 4px;
+	}
+
+	/* Roulette */
+	.roulette .cash-font {
+		font-size: 1.1em;
+	}
+
+}
+
+/*  - - - - - - - - - - Responsive Queries - - - - - - - - - - */
+
+@media(max-width:1430px){ 
+
+	.board-section .row {
+		margin: 0;
+	}
+
+	.board-panel {
+		width: 100%;
+		max-width: 740px;
+		margin: 10px 0;
+	}
+
+	.board-panel:first-child {
+		order: 2;
+	}
+
+	.realtime-board {
+		width: 100%;
+		max-width: 740px;
+		margin: 10px 0;
+		order: 1;
+		margin-bottom: 100px;
+	}
+
+	.board-panel:last-child {
+		order: 3;
+	}
+
+	.board-section {
+		padding: 40px 0 15px;
+	}
+
+	.customer-container {
+		margin-top: 0;
+	}
+}
+
+@media(max-width:1310px){ 
+
+	.sc-btn {
+		width: calc(20% - 15px);
+	}
+
+}
+
+@media(max-width:1024px){ 
+
+	.sc-btn {
+		width: calc(25% - 15px);
+	}
+
+}
+
+@media(max-width:767px){ 
+
+	.sc-btn {
+		width: calc(33.33% - 15px);
+	}
+
+	.footer-section .provider-logo img {
+		max-width: 80px;
+		max-height: 34px;
+		margin: 8px 10px;
+	}
+
+	.sc-btn .g-info .g-name {
+		font-size: 14px;
+		white-space: nowrap;
+	}
+}
+
+@media(max-width:476px){ 
+
+	.page-content {
+		padding: 0;
+	}
+
+	.game-provider {
+		margin: 20px 0 0;
+	}
+
+	.sc-btn {
+		width: calc(50% - 12px);
+		margin: 7px 6px;
+		padding: 2px;
+		box-shadow: 0 2px 5px rgba(0, 0, 0, 1);
+	}
+
+	.sc-btn .g-panel {
+		padding: 6px 6px 8px;
+	}
+
+	.sc-btn .play-btn {
+		width: 80px;
+		height: 30px;
+		font-size: 12px;
+	}
+
+	.board-panel .header .icon-panel img {
+		max-width: 70px;
+	}
+
+	.board-panel:last-child .header .icon-panel img {
+		max-width: 60px;
+	}
+
+	.board-panel .header .title-panel .title {
+		font-size: 18px;
+	}
+
+	.board-section .board-panel .content table td a {
+		max-width: 200px;
+		font-size: 12px;
+	}
+
+	.board-panel table tr td{
+		font-size: 12px;
+		padding-right: 0;
+	}
+
+	.realtime-board .rb-panel .rb-cont {
+		padding: 5px 8px;
+	}
+
+	.rolling-realtime ul li div {
+		font-size: 12px;
+	}
+
+	.rolling-realtime ul li div.amount {
+		font-size: 14px;
+		padding: 0;
+	}
+
+	.rolling-realtime ul li .crown-icon {
+		width: 30px;
+	}
+
+	.footer-section {
+		padding: 25px 0 35px;
+	}
+
+	.footer-section .provider-logo {
+		padding: 0 0 20px;
+	}
+
+	.footer-section .copyright {
+		padding: 15px 0 0;
+	}
+
+}
+
+/*  - - - - - - - - - - Modal Queries - - - - - - - - - - */
+
+@media(max-width:1024px){
+
+	.level-information .container{ 
+		width:25%; 
+	}
+
+	.level-information .container:first-child{ 
+		width:20%; 
+	}
+
+	.level-information .container span{
+		font-size:12px;
+	}
+
+	.level-information .container .labels{ 
+		margin-right:0;
+	}
+
+	.level-information .container .amount{
+		font-size:14px;
+	}
+
+	.level-information .point-form{
+		width:55%;
+		padding:0 5px;
+	}
+
+	.level-information .point-form input{
+		width:58%;
+		border-radius:5px 0 0 5px;
+	}
+
+	.level-information .points-btn{
+		width:40%;
+		position:relative;
+		right:0;
+		font-size:8px;
+		border-radius:0 5px 5px 0;
+	}
+
+	.gamelist-container {
+		/* min-height: initial;
+		max-height: initial; */
+		margin: 0 0 -20px;
+		/* overflow-y: auto; */
+		padding: 0;
+	}
+
+	.game-btn {
+		width: calc(20% - 16px);
+	}
+
+}
+
+@media(max-width:767px){
+
+	.modal-title {
+		margin: 0 0 -18px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.modal-title .modal-icon {
+		width: 70px;
+		height: 80px;
+		font-size: 24px;
+		margin: 0;
+	}
+
+	.modal-title .title-panel {
+		margin: 0 0 0 10px;
+		white-space: nowrap;
+	}
+
+	.modal-title .title {
+		width: auto;
+		font-size: 24px;
+		vertical-align:  baseline;
+		text-shadow: 0 1px 0 rgba(0, 0, 0, 1), 0 0 10px rgba(0, 0, 0, 1);
+	}
+
+	.modal-title .sub {
+		width: auto;
+		font-size: 12px;
+		vertical-align:  baseline;
+		text-shadow: 0 1px 0 rgba(0, 0, 0, 1), 0 0 10px rgba(0, 0, 0, 1), 0 0 10px rgba(0, 0, 0, 1);
+		margin-left: 5px;
+	}
+
+	.w-mob-title {
+		display: none !important;
+	}
+
+	.modal-title-mob {
+		display: inline-block;
+	}
+
+	.modal-head-panel {
+		width: 100%;
+		margin: 30px auto 10px;
+		padding: 0 30px;
+		min-height: initial;
+	}
+
+	.modal-head-panel .btn-grp {
+		width: 100%;
+		order: 1;
+		margin: 0;
+	}
+
+	.modal-head-panel .btn-grp button {
+		width: calc(50% - 8px);
+		margin: 0 4px;
+	}
+
+	.modal-head-panel .ask-link {
+		width: 100%;
+		text-align: center;
+		order: 2;
+		margin: 10px 0 0;
+	}
+
+	.game-btn {
+		width: calc(25% - 16px);
+	}
+
+}
+
+@media(max-width:600px){
+
+	.modal-menu .bs-ul {
+		display: flex;
+		flex-wrap: wrap;
+	}
+
+	.modal-menu .bs-ul li {
+		width: 25%;
+		display: block;
+	}
+
+	.modal-menu .bs-ul li:nth-child(4n+0):before {
+		display: none;
+	}
+
+	.modal-menu li a {
+		height: 40px;
+	}
+
+	.modal-menu li a:before {
+		display: none;
+	}
+
+	.gamelist-container {
+		width: calc(100% + 10px);
+		margin: 0 -5px -20px;
+	}
+
+	.game-btn {
+		width: calc(33.33% - 10px);
+		margin: 0 5px 10px;
+	}
+
+	.game-btn .g-panel .g-img {
+		margin-bottom: 30px;
+	}
+	
+	.game-btn .g-panel .g-footer {
+		height: 30px;
+	}
+
+	.game-btn .g-panel .g-footer .name-text {
+		font-size: 11px;
+	}
+
+	.game-btn .g-panel .play-btn {
+		top: 5px;
+		left: 5px;
+	}
+
+	.game-btn .g-panel .play-btn .icon {
+		width: 30px;
+		height: 30px;
+	}
+
+	.modal-body {
+		padding: 10px 20px 40px;
+	}
+
+	.customer-container>.row {
+		flex-flow: column;
+	}
+	.customer-btn {
+		max-width: initial;
+	}
+}
+
+@media(max-width:500px){
+
+	.modal-banner {
+		height: auto;
+	}
+
+	.modal-banner .modal-logo {
+		width: 100px;
+		margin: 0 0 5px;
+	}
+
+	.modal-title .modal-icon {
+		width: 60px;
+		height: 65px;
+		font-size: 20px
+	}
+
+	.modal-title .modal-icon img {
+		max-width: 38px;
+	}
+
+	.modal-title .title-panel {
+		margin: -10px 0 0 10px;
+	}
+
+	.modal-title .title {
+		font-size: 18px;
+	}
+
+	.modal-head-panel {
+		padding: 0 10px;
+	}
+
+	.modal-menu {
+		margin: 0 0 20px;
+	}
+
+	.modal-menu li a {
+		font-size: 12px;
+	}
+
+	.modal-menu li a .icon-panel {
+		width: 30px;
+		height: 22px;
+	}
+
+	.modal-body {
+		padding: 10px 10px 40px;
+	}
+
+	.bs-table tr td a {
+		max-width: 180px;
+	}
+
+	.bs-table tr .title-td {
+		max-width: 180px;
+		padding: 0 0 0 10px;
+	}
+
+	.bs-table tr .count-td {
+		width: auto;
+	}
+
+	.bs-table tr .date-td {
+		width: auto;
+		font-size: 12px;
+	}
+
+	.bs-table tr .nav-td {
+		width: 5em;
+		padding: 0 4px;
+	}
+
+	.new-icon {
+		margin-left: 2px;
+	}
+
+	.bs-table tr .count-tag {
+		width: 20px;
+		height: 20px;
+		margin: 0 0 0 5px;
+	}
+
+	.form-container .form-group {
+		margin: 0 0 20px;
+	}
+
+	.form-footer button {
+		height: 45px;
+		margin: 0 4px;
+	}
+
+	.bs-table td .level-txt {
+		width: 100%;
+		text-align: center;
+	}
+
+	.clearable {
+		width: 100%;
+	}
+}
